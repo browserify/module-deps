@@ -4,4 +4,5 @@ var JSONStream = require('JSONStream');
 var stringify = JSONStream.stringify();
 stringify.pipe(process.stdout);
 
-parser(process.argv.slice(2)).pipe(stringify)
+var file = __dirname + '/files/main.js';
+parser(file).pipe(stringify);
