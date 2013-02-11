@@ -3,6 +3,8 @@
 walk the dependency graph to generate json output that can be fed into
 [browser-pack](https://github.com/substack/browser-build)
 
+[![build status](https://secure.travis-ci.org/substack/module-deps.png)](http://travis-ci.org/substack/module-deps)
+
 # example
 
 ``` js
