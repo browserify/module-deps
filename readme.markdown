@@ -1,7 +1,7 @@
 # module-deps
 
 walk the dependency graph to generate json output that can be fed into
-[browser-pack](https://github.com/substack/browser-build)
+[browser-pack](https://github.com/substack/browser-pack)
 
 [![build status](https://secure.travis-ci.org/substack/module-deps.png)](http://travis-ci.org/substack/module-deps)
 
@@ -32,7 +32,7 @@ $ node example/deps.js
 ```
 
 and you can feed this json data into
-[browser-pack](https://github.com/substack/browser-build):
+[browser-pack](https://github.com/substack/browser-pack):
 
 ```
 $ node example/deps.js | browser-pack | node
