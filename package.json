@@ -1,6 +1,6 @@
 {
     "name": "module-deps",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
     "main": "index.js",
     "bin": {
@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "JSONStream": "~0.4.3",
-        "required": "git://github.com/substack/node-required.git#source-and-cache"
+        "required": "~0.2.0"
     },
     "devDependencies": {
         "tap": "~0.4.0",
