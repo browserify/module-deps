@@ -4,7 +4,7 @@ var path = require('path');
 var required = require('required');
 var Stream = require('stream');
 
-module.exports = function (mains) {
+module.exports = function (mains, opts) {
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     mains = mains.map(function (file) {
         return path.resolve(file);
@@ -17,7 +17,9 @@ module.exports = function (mains) {
     var output = new Stream;
     output.readable = true;
     
-    var opts = { cache: cache, includeSource: true };
+    if (!opts) opts = {};
+    if (opts.cache === undefined) opts.cache = cache;
+    opts.includeSource = true;
     
     mains.forEach(function (file) {
         pending ++;

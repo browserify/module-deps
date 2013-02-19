@@ -54,10 +54,13 @@ usage: module-deps [files]
 var mdeps = require('module-deps')
 ```
 
-## mdeps(files)
+## mdeps(files, opts={})
 
 Return a readable stream of javascript objects from an array of filenames
 `files`.
+
+Optionally pass in `opts` that will be fed through into the underlying
+[required](https://github.com/shtylman/node-required) module.
 
 # install
 
