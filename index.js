@@ -64,7 +64,7 @@ module.exports = function (mains) {
             var r = files[row.filename] = {
                 id: row.filename,
                 source: row.source,
-                deps: row.deps.reduce(function (acc, dep) {
+                deps: (row.deps || []).reduce(function (acc, dep) {
                     acc[dep.id] = dep.filename;
                     return acc;
                 }, {})
@@ -74,7 +74,7 @@ module.exports = function (mains) {
             }
             output.emit('data', r);
             
-            walk(row.deps);
+            walk(row.deps || []);
         });
     }
 };
