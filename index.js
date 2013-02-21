@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 
 var required = require('required');
-var Stream = require('stream');
+var through = require('through');
 
 module.exports = function (mains, opts) {
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
@@ -14,8 +14,7 @@ module.exports = function (mains, opts) {
     var cache = {};
     var pending = 0;
     
-    var output = new Stream;
-    output.readable = true;
+    var output = through();
     
     if (!opts) opts = {};
     if (opts.cache === undefined) opts.cache = cache;
@@ -36,11 +35,11 @@ module.exports = function (mains, opts) {
                         return acc;
                     }, {})
                 };
-                output.emit('data', files[file]);
+                output.queue(files[file]);
             };
             
             walk(rows);
-            if (--pending === 0) output.emit('end');
+            if (--pending === 0) output.queue(null);
         }
         
         fs.readFile(file, 'utf8', function (err, s) {
@@ -56,7 +55,9 @@ module.exports = function (mains, opts) {
         });
     });
     
-    if (pending === 0) process.nextTick(output.emit.bind(output, 'end'));
+    if (pending === 0) process.nextTick(function () {
+        output.queue(null);
+    });
     
     return output;
     
@@ -74,7 +75,7 @@ module.exports = function (mains, opts) {
             if (mains.indexOf(row.filename) >= 0) {
                 r.entry = true;
             }
-            output.emit('data', r);
+            output.queue(r);
             
             walk(row.deps || []);
         });
