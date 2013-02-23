@@ -63,7 +63,7 @@ module.exports = function (mains, opts) {
     
     function walk (rows) {
         rows.forEach(function (row) {
-            if (!row.source || files[row.filename]) return;
+            if (row.source === undefined || files[row.filename]) return;
             var r = files[row.filename] = {
                 id: row.filename,
                 source: row.source,
