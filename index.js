@@ -19,7 +19,7 @@ module.exports = function (mains, opts) {
     if (!opts) opts = {};
     if (opts.cache === undefined) opts.cache = cache;
     opts.includeSource = true;
-    
+
     mains.forEach(function (file) {
         pending ++;
         var p = 2, src, rows;
@@ -39,7 +39,9 @@ module.exports = function (mains, opts) {
             };
             
             walk(rows);
-            if (--pending === 0) output.queue(null);
+            if (--pending === 0) {
+                output.queue(null);
+            }
         }
         
         fs.readFile(file, 'utf8', function (err, s) {
@@ -63,7 +65,7 @@ module.exports = function (mains, opts) {
     
     function walk (rows) {
         rows.forEach(function (row) {
-            if (files[row.filename]) return;
+            if (!row.source || files[row.filename]) return;
             var r = files[row.filename] = {
                 id: row.filename,
                 source: row.source,
