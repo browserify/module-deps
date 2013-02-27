@@ -21,7 +21,8 @@ module.exports = function (mains, opts) {
     
     if (!opts) opts = {};
     if (opts.cache === undefined) opts.cache = cache;
-    if (!opts.transform) opts.transform = [];
+    var transforms = [].concat(opts.transform).filter(Boolean);
+    
     var resolve = opts.resolve || browserResolve;
     opts.includeSource = true;
     
@@ -78,7 +79,7 @@ module.exports = function (mains, opts) {
                 ap(trs.slice(1));
             });
             ps.stdin.end(src);
-        })(opts.transform.slice());
+        })(transforms.slice());
         
         function done () {
             parseDeps(file, src);
