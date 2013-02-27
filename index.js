@@ -44,7 +44,7 @@ module.exports = function (mains, opts) {
             && pkg.browserify.transform) {
                 trx = [].concat(pkg.browserify.transform);
             }
-            return pkg;
+            return opts.packageFilter ? opts.packageFilter(pkg) : pkg;
         };
         
         resolve(id, parent, function (err, file) {
