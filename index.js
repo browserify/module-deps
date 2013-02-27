@@ -1,7 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 
-var required = require('required');
+var browserResolve = require('browser-resolve');
+var detective = require('detective');
 var through = require('through');
 
 module.exports = function (mains, opts) {
@@ -10,74 +11,65 @@ module.exports = function (mains, opts) {
         return path.resolve(file);
     });
     
-    var files = {};
-    var cache = {};
+    var visited = {};
     var pending = 0;
+    var cache = {};
     
     var output = through();
     
     if (!opts) opts = {};
     if (opts.cache === undefined) opts.cache = cache;
+    var resolve = opts.resolve || browserResolve;
     opts.includeSource = true;
     
-    mains.forEach(function (file) {
-        pending ++;
-        var p = 2, src, rows;
-        
-        function done () {
-            if (!files[file]) {
-                files[file] = {
-                    id: file,
-                    source: src,
-                    entry: true,
-                    deps: rows.reduce(function (acc, dep) {
-                        acc[dep.id] = dep.filename;
-                        return acc;
-                    }, {})
-                };
-                output.queue(files[file]);
-            };
-            
-            walk(rows);
-            if (--pending === 0) output.queue(null);
-        }
-        
-        fs.readFile(file, 'utf8', function (err, s) {
-            if (err) return output.emit('error', err);
-            src = s;
-            if (--p === 0) done();
-        });
-        
-        required(file, opts, function (err, r) {
-            if (err) return output.emit('error', err);
-            rows = r;
-            if (--p === 0) done();
-        });
-    });
+    var top = { id: '/', filename: '/', paths: [] };
+    mains.forEach(function (main) { walk(main, top) });
     
-    if (pending === 0) process.nextTick(function () {
-        output.queue(null);
-    });
+    if (mains.length === 0) {
+        process.nextTick(output.queue.bind(output, null));
+    }
     
     return output;
     
-    function walk (rows) {
-        rows.forEach(function (row) {
-            if (files[row.filename]) return;
-            var r = files[row.filename] = {
-                id: row.filename,
-                source: row.source,
-                deps: (row.deps || []).reduce(function (acc, dep) {
-                    acc[dep.id] = dep.filename;
-                    return acc;
-                }, {})
-            };
-            if (mains.indexOf(row.filename) >= 0) {
-                r.entry = true;
-            }
-            output.queue(r);
+    function walk (id, parent, cb) {
+        pending ++;
+        
+        resolve(id, parent, function (err, file) {
+            if (err) return output.emit('error', err);
+            if (cb) cb(file);
+            if (visited[file]) { --pending; return };
+            visited[file] = true;
             
-            walk(row.deps || []);
+            fs.readFile(file, 'utf8', function (err, src) {
+                if (err) output.emit('error', err);
+                else parseDeps(file, src);
+                
+                if (--pending === 0) output.queue(null);
+            });
+        });
+    }
+    
+    function parseDeps (file, src) {
+        var deps = detective(src);
+        var p = deps.length;
+        var current = { id: file, filename: file, paths: [] };
+        var resolved = {};
+        
+        deps.forEach(function (id) {
+            walk(id, current, function (r) {
+                resolved[id] = r;
+                if (--p > 0) return;
+                
+                var rec = {
+                    id: file,
+                    source: src,
+                    deps: resolved
+                };
+                if (mains.indexOf(r) >= 0) {
+                    rec.entry = true;
+                }
+                output.queue(rec);
+            });
         });
     }
 };

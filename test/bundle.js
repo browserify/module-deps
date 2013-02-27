@@ -6,6 +6,7 @@ var packer = require('browser-pack');
 test('bundle', function (t) {
     t.plan(1);
     var p = parser(__dirname + '/files/main.js');
+    p.on('error', t.fail.bind(t));
     var pack = packer();
     
     p.pipe(JSONStream.stringify()).pipe(pack);
