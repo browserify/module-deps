@@ -21,11 +21,9 @@ module.exports = function (mains, opts) {
     var output = through();
     
     if (!opts) opts = {};
-    if (opts.cache === undefined) opts.cache = cache;
     var transforms = [].concat(opts.transform).filter(Boolean);
     
     var resolve = opts.resolve || browserResolve;
-    opts.includeSource = true;
     
     var top = { id: '/', filename: '/', paths: [] };
     mains.forEach(function (main) { walk(main, top) });
@@ -41,11 +39,12 @@ module.exports = function (mains, opts) {
         
         var trx = [];
         parent.packageFilter = function (pkg) {
+            if (opts.packageFilter) pkg = opts.packageFilter(pkg);
             if (pkg.browserify && typeof pkg.browserify === 'object'
             && pkg.browserify.transform) {
                 trx = [].concat(pkg.browserify.transform);
             }
-            return opts.packageFilter ? opts.packageFilter(pkg) : pkg;
+            return pkg;
         };
         
         resolve(id, parent, function (err, file) {
