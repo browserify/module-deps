@@ -5,7 +5,7 @@ var packer = require('browser-pack');
 
 test('transform', function (t) {
     t.plan(3);
-    var p = mdeps(__dirname + '/files/tr/main.js', {
+    var p = mdeps(__dirname + '/files/tr_sh/main.js', {
         transform: [ 'sed s/AAA/5/', 'sed s/BBB/50/' ]
     });
     var pack = packer();
