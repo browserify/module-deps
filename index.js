@@ -38,6 +38,15 @@ module.exports = function (mains, opts) {
     function walk (id, parent, cb) {
         pending ++;
         
+        var trx = [];
+        parent.packageFilter = function (pkg) {
+            if (pkg.browserify && typeof pkg.browserify === 'object'
+            && pkg.browserify.transform) {
+                trx = [].concat(pkg.browserify.transform);
+            }
+            return pkg;
+        };
+        
         resolve(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
             if (cb) cb(file);
@@ -46,23 +55,23 @@ module.exports = function (mains, opts) {
             
             fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
-                
-                applyTransforms(file, src);
+                applyTransforms(file, trx, src);
             });
         });
     }
     
-    function applyTransforms (file, src) {
+    function applyTransforms (file, trx, src) {
+        var isTopLevel = mains.some(function (main) {
+            var m = path.relative(path.dirname(main), file);
+            return m.split('/').indexOf('node_modules') < 0;
+        });
+        var transf = (isTopLevel ? transforms : []).concat(trx);
+        if (transf.length === 0) return done();
+        
         (function ap (trs) {
             if (trs.length === 0) return done();
             var tr = trs[0];
             var cmd = parseShell(tr);
-            
-            var isTopLevel = mains.some(function (main) {
-                var m = path.relative(path.dirname(main), file);
-                return m.split('/').indexOf('node_modules') < 0;
-            });
-            if (!isTopLevel) return ap(trs.slice(1));
             
             var ps = spawn(cmd[0], cmd.slice(1), {
                 cwd: path.dirname(file)
@@ -79,7 +88,7 @@ module.exports = function (mains, opts) {
                 ap(trs.slice(1));
             });
             ps.stdin.end(src);
-        })(transforms.slice());
+        })(transf);
         
         function done () {
             parseDeps(file, src);
