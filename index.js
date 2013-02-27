@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var spawn = require('child_process').spawn;
 var parseShell = require('shell-quote').parse;
+var duplexer = require('duplexer');
 
 var browserResolve = require('browser-resolve');
 var detective = require('detective');
@@ -70,24 +71,16 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            var tr = trs[0];
-            var cmd = parseShell(tr);
+            var s = makeTransform(file, trs[0]);
+            s.on('error', output.emit.bind(output, 'error'));
             
-            var ps = spawn(cmd[0], cmd.slice(1), {
-                cwd: path.dirname(file)
-            });
             var data = '';
-            ps.stdout.on('data', function (buf) { data += buf });
-            ps.on('close', function (code) {
-                if (code !== 0) {
-                    return output.emit('error',
-                        'process ' + tr + ' exited with code ' + code
-                    );
-                }
+            s.on('data', function (buf) { data += buf });
+            s.on('end', function () {
                 src = data;
                 ap(trs.slice(1));
             });
-            ps.stdin.end(src);
+            s.end(src);
         })(transf);
         
         function done () {
@@ -121,5 +114,50 @@ module.exports = function (mains, opts) {
             output.queue(rec);
             if (--pending === 0) output.queue(null);
         }
+    }
+    
+    function makeTransform (file, tr) {
+        if (/\s/.test(tr)) return cmdTransform(file, tr);
+        
+        var tout = through(), tin = through();
+        tin.pause();
+        
+        var parent = { id: file, filename: file, paths: [] };
+        resolve(tr, parent, function (err, res) {
+            if (err) return output.emit('error', err);
+            var t = res
+                ? require(res)(file)
+                : cmdTransform(file, tr)
+            ;
+            t.pipe(tout);
+            tin.pipe(t);
+            tin.resume();
+        });
+        return duplexer(tin, tout);
+    }
+    
+    function cmdTransform (file, tr) {
+        var cmd = parseShell(tr);
+        var env = Object.create(process.env);
+        env._ = tr;
+        env.FILENAME = file;
+        var current = { id: file, filename: file, paths: [] };
+        
+        var ps = spawn(cmd[0], cmd.slice(1), {
+            cwd: path.dirname(file),
+            env: env
+        });
+        var error = '';
+        ps.stderr.on('data', function (buf) { error += buf });
+        ps.on('close', function (code) {
+            if (code !== 0) {
+                return output.emit('error', [
+                    'process ' + tr + ' exited with code ' + code,
+                    ' while parsing ' + file + '\n',
+                    error.split('\n').join('\n    ')
+                ].join(''));
+            }
+        });
+        return duplexer(ps.stdin, ps.stdout);
     }
 };

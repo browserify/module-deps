@@ -5,7 +5,7 @@ var packer = require('browser-pack');
 
 test('transform', function (t) {
     t.plan(3);
-    var p = mdeps(__dirname + '/files/tr/main.js', {
+    var p = mdeps(__dirname + '/files/tr_module/main.js', {
         transform: [ 'insert-aaa', 'insert-bbb' ]
     });
     var pack = packer();
