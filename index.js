@@ -58,18 +58,21 @@ module.exports = function (mains, opts) {
         deps.forEach(function (id) {
             walk(id, current, function (r) {
                 resolved[id] = r;
-                if (--p > 0) return;
-                
-                var rec = {
-                    id: file,
-                    source: src,
-                    deps: resolved
-                };
-                if (mains.indexOf(r) >= 0) {
-                    rec.entry = true;
-                }
-                output.queue(rec);
+                if (--p === 0) done();
             });
         });
+        if (deps.length === 0) done();
+        
+        function done () {
+            var rec = {
+                id: file,
+                source: src,
+                deps: resolved
+            };
+            if (mains.indexOf(file) >= 0) {
+                rec.entry = true;
+            }
+            output.queue(rec);
+        }
     }
 };
