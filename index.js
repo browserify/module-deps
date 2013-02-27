@@ -57,6 +57,12 @@ module.exports = function (mains, opts) {
             var tr = trs[0];
             var cmd = parseShell(tr);
             
+            var isTopLevel = mains.some(function (main) {
+                var m = path.relative(path.dirname(main), file);
+                return m.split('/').indexOf('node_modules') < 0;
+            });
+            if (!isTopLevel) return ap(trs.slice(1));
+            
             var ps = spawn(cmd[0], cmd.slice(1), {
                 cwd: path.dirname(file)
             });
