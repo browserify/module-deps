@@ -1,5 +1,7 @@
 var fs = require('fs');
 var path = require('path');
+var spawn = require('child_process').spawn;
+var parseShell = require('shell-quote').parse;
 
 var browserResolve = require('browser-resolve');
 var detective = require('detective');
@@ -19,6 +21,7 @@ module.exports = function (mains, opts) {
     
     if (!opts) opts = {};
     if (opts.cache === undefined) opts.cache = cache;
+    if (!opts.transform) opts.transform = [];
     var resolve = opts.resolve || browserResolve;
     opts.includeSource = true;
     
@@ -41,12 +44,39 @@ module.exports = function (mains, opts) {
             visited[file] = true;
             
             fs.readFile(file, 'utf8', function (err, src) {
-                if (err) output.emit('error', err);
-                else parseDeps(file, src);
+                if (err) return output.emit('error', err);
                 
-                if (--pending === 0) output.queue(null);
+                applyTransforms(file, src);
             });
         });
+    }
+    
+    function applyTransforms (file, src) {
+        (function ap (trs) {
+            if (trs.length === 0) return done();
+            var tr = trs[0];
+            var cmd = parseShell(tr);
+            
+            var ps = spawn(cmd[0], cmd.slice(1), {
+                cwd: path.dirname(file)
+            });
+            var data = '';
+            ps.stdout.on('data', function (buf) { data += buf });
+            ps.on('close', function (code) {
+                if (code !== 0) {
+                    return output.emit('error',
+                        'process ' + tr + ' exited with code ' + code
+                    );
+                }
+                src = data;
+                ap(trs.slice(1));
+            });
+            ps.stdin.end(src);
+        })(opts.transform.slice());
+        
+        function done () {
+            parseDeps(file, src);
+        }
     }
     
     function parseDeps (file, src) {
@@ -73,6 +103,7 @@ module.exports = function (mains, opts) {
                 rec.entry = true;
             }
             output.queue(rec);
+            if (--pending === 0) output.queue(null);
         }
     }
 };
