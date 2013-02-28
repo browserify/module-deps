@@ -121,47 +121,21 @@ module.exports = function (mains, opts) {
     }
     
     function makeTransform (file, tr) {
-        if (/\s/.test(tr)) return cmdTransform(file, tr);
-        
         var tout = through(), tin = through();
         tin.pause();
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function (err, res) {
             if (err) return output.emit('error', err);
-            var t = res
-                ? require(res)(file)
-                : cmdTransform(file, tr)
-            ;
+            if (!res) return output.emit('error', [
+                'cannot find transform module ', tr,
+                ' while transforming ', file
+            ].join(''));
+            var t = require(res)(file);
             t.pipe(tout);
             tin.pipe(t);
             tin.resume();
         });
         return duplexer(tin, tout);
-    }
-    
-    function cmdTransform (file, tr) {
-        var cmd = parseShell(tr);
-        var env = Object.create(process.env);
-        env._ = tr;
-        env.FILENAME = file;
-        var current = { id: file, filename: file, paths: [] };
-        
-        var ps = spawn(cmd[0], cmd.slice(1), {
-            cwd: path.dirname(file),
-            env: env
-        });
-        var error = '';
-        ps.stderr.on('data', function (buf) { error += buf });
-        ps.on('close', function (code) {
-            if (code !== 0) {
-                return output.emit('error', [
-                    'process ' + tr + ' exited with code ' + code,
-                    ' while parsing ' + file + '\n',
-                    error.split('\n').join('\n    ')
-                ].join(''));
-            }
-        });
-        return duplexer(ps.stdin, ps.stdout);
     }
 };
