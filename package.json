@@ -1,15 +1,19 @@
 {
     "name": "module-deps",
-    "version": "0.2.6",
+    "version": "0.3.0",
     "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
     "main": "index.js",
     "bin": {
         "module-deps": "cmd.js"
     },
     "dependencies": {
+        "through": "~2.2.0",
+        "duplexer": "~0.0.3",
         "JSONStream": "~0.4.3",
         "browser-resolve": "~0.0.3",
-        "through": "~2.2.0"
+        "resolve": "~0.3.0",
+        "shell-quote": "~0.0.1",
+        "detective": "~1.1.0"
     },
     "devDependencies": {
         "tap": "~0.4.0",
