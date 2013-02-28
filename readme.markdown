@@ -97,17 +97,6 @@ You don't necessarily need to use the
 readable/writable filter stream for transforming file contents, but this is an
 easy way to do it.
 
-If the transform string has whitespace or failed to `require.resolve()`, it is
-treated as a shell command to run. For instance: `"sed s/AAA/BBB/"` is a valid
-transform string command. To compile coffee-script on the fly you can use the
-transform command string `"coffee -sc"` to compile from stdin and write to
-stdout.
-
-Commands should take stdin and write to stdout to perform their transformations.
-If an error occurs, commands should return a non-0 exit code and write to
-stderr. The file being written to the command over stdin is set as the
-`$FILENAME` environment variable.
-
 When you call `mdeps()` with an `opts.transform`, the transformations you
 specify will not be run for any files in node_modules/. This is because modules
 you include should be self-contained and not need to worry about guarding
