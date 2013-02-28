@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var spawn = require('child_process').spawn;
-var parseShell = require('shell-quote').parse;
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
