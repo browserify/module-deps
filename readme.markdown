@@ -59,8 +59,64 @@ var mdeps = require('module-deps')
 Return a readable stream of javascript objects from an array of filenames
 `files`.
 
-Optionally pass in `opts` that will be fed through into the underlying
-[required](https://github.com/shtylman/node-required) module.
+Optionally pass in some `opts`:
+
+* opts.transform - a string or array of string transforms (see below)
+
+* opts.transformKey - an array path of strings showing where to look in the
+package.json for source transformations. If falsy, don't look at the
+package.json at all.
+
+* opts.resolve - custom resolve function using the
+`opts.resolve(id, parent, cb)` signature that
+[browser-resolve](https://github.com/shtylman/node-browser-resolve) has
+
+* opts.packageFilter - transform the parsed package.json contents before using
+the values. `opts.packageFilter(pkg)` should return the new `pkg` object to use.
+
+# transforms
+
+module-deps can be configured to run source transformations on files before
+parsing them for `require()` calls. These transforms are useful if you want to
+compile a language like [coffeescript](http://coffeescript.org/) on the fly or
+if you want to load static assets into your bundle by parsing the AST for
+`fs.readFileSync()` calls.
+
+Transforms are just strings. If the transform string doesn't have any
+whitespace in it, the transform is treated as a module name and if the name
+resolves rooted at the current file path, the module is expected to follow this
+format:
+
+``` js
+var through = require('through');
+module.exports = function (file) { return through() };
+```
+
+You don't necessarily need to use the
+[through](https://github.com/dominictarr/through) module to create a
+readable/writable filter stream for transforming file contents, but this is an
+easy way to do it.
+
+If the transform string has whitespace or failed to `require.resolve()`, it is
+treated as a shell command to run. For instance: `"sed s/AAA/BBB/"` is a valid
+transform string command. To compile coffee-script on the fly you can use the
+transform command string `"coffee -sc"` to compile from stdin and write to
+stdout.
+
+Commands should take stdin and write to stdout to perform their transformations.
+If an error occurs, commands should return a non-0 exit code and write to
+stderr. The file being written to the command over stdin is set as the
+`$FILENAME` environment variable.
+
+When you call `mdeps()` with an `opts.transform`, the transformations you
+specify will not be run for any files in node_modules/. This is because modules
+you include should be self-contained and not need to worry about guarding
+themselves against transformations that may happen upstream.
+
+Modules can apply their own transformations by setting a transformation pipeline
+in their package.json at the `opts.transformKey` path. These transformations
+only apply to the files directly in the module itself, not to the module's
+dependants nor to its dependencies.
 
 # install
 
