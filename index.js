@@ -54,6 +54,10 @@ module.exports = function (mains, opts) {
         
         resolve(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
+            if (!file) return output.emit('error', [
+                'module not found: "' + id + '" from file ',
+                parent.filename
+            ].join(''));
             if (cb) cb(file);
             if (visited[file]) { --pending; return };
             visited[file] = true;
