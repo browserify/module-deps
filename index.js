@@ -2,7 +2,6 @@ var fs = require('fs');
 var path = require('path');
 var spawn = require('child_process').spawn;
 var parseShell = require('shell-quote').parse;
-var duplexer = require('duplexer');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -79,16 +78,16 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            var s = makeTransform(file, trs[0]);
-            s.on('error', output.emit.bind(output, 'error'));
-            
-            var data = '';
-            s.on('data', function (buf) { data += buf });
-            s.on('end', function () {
-                src = data;
-                ap(trs.slice(1));
+            makeTransform(file, trs[0], function (s) {
+                s.on('error', output.emit.bind(output, 'error'));
+                var data = '';
+                s.on('data', function (buf) { data += buf });
+                s.on('end', function () {
+                    src = data;
+                    ap(trs.slice(1));
+                });
+                s.end(src);
             });
-            s.end(src);
         })(transf);
         
         function done () {
@@ -124,10 +123,8 @@ module.exports = function (mains, opts) {
         }
     }
     
-    function makeTransform (file, tr) {
-        if (typeof tr === 'function') return tr(file);
-        var tout = through(), tin = through();
-        tin.pause();
+    function makeTransform (file, tr, cb) {
+        if (typeof tr === 'function') return cb(tr(file));
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function (err, res) {
@@ -136,11 +133,7 @@ module.exports = function (mains, opts) {
                 'cannot find transform module ', tr,
                 ' while transforming ', file
             ].join(''));
-            var t = require(res)(file);
-            t.pipe(tout);
-            tin.pipe(t);
-            tin.resume();
+            cb(require(res)(file));
         });
-        return duplexer(tin, tout);
     }
 };
