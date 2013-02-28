@@ -40,9 +40,13 @@ module.exports = function (mains, opts) {
         var trx = [];
         parent.packageFilter = function (pkg) {
             if (opts.packageFilter) pkg = opts.packageFilter(pkg);
-            if (pkg.browserify && typeof pkg.browserify === 'object'
-            && pkg.browserify.transform) {
-                trx = [].concat(pkg.browserify.transform);
+            
+            if (opts.transformKey) {
+                var n = pkg;
+                opts.transformKey.forEach(function (key) {
+                    if (n && typeof n === 'object') n = n[key];
+                });
+                trx = [].concat(n).filter(Boolean);
             }
             return pkg;
         };
