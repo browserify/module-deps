@@ -131,7 +131,8 @@ module.exports = function (mains, opts) {
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function (err, res) {
-            if (err) return output.emit('error', err);
+            if (err) return cb(through());
+            
             if (!res) return output.emit('error', [
                 'cannot find transform module ', tr,
                 ' while transforming ', file
