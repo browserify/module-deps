@@ -5,6 +5,7 @@ var parseShell = require('shell-quote').parse;
 var duplexer = require('duplexer');
 
 var browserResolve = require('browser-resolve');
+var nodeResolve = require('resolve');
 var detective = require('detective');
 var through = require('through');
 
@@ -125,8 +126,8 @@ module.exports = function (mains, opts) {
         var tout = through(), tin = through();
         tin.pause();
         
-        var parent = { id: file, filename: file, paths: [] };
-        resolve(tr, parent, function (err, res) {
+        var params = { basedir: path.dirname(file) };
+        nodeResolve(tr, params, function (err, res) {
             if (err) return output.emit('error', err);
             var t = res
                 ? require(res)(file)
