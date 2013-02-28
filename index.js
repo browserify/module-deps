@@ -121,6 +121,7 @@ module.exports = function (mains, opts) {
     }
     
     function makeTransform (file, tr) {
+        if (typeof tr === 'function') return tr(file);
         var tout = through(), tin = through();
         tin.pause();
         

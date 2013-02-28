@@ -82,10 +82,12 @@ compile a language like [coffeescript](http://coffeescript.org/) on the fly or
 if you want to load static assets into your bundle by parsing the AST for
 `fs.readFileSync()` calls.
 
-Transforms are just strings. If the transform string doesn't have any
-whitespace in it, the transform is treated as a module name and if the name
-resolves rooted at the current file path, the module is expected to follow this
-format:
+If the transform is a function, it should take the `file` name as an argument
+and return a through stream that will be written file contents and should output
+the new transformed file contents.
+
+If the transform is a string, it is treated as a module name that will resolve
+to a module that is expected to follow this format:
 
 ``` js
 var through = require('through');
