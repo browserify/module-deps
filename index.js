@@ -58,7 +58,10 @@ module.exports = function (mains, opts) {
                 parent.filename
             ].join(''));
             if (cb) cb(file);
-            if (visited[file]) { --pending; return };
+            if (visited[file]) {
+                if (--pending === 0) output.queue(null);
+                return;
+            }
             visited[file] = true;
             
             fs.readFile(file, 'utf8', function (err, src) {
