@@ -52,10 +52,10 @@ module.exports = function (mains, opts) {
         
         resolve(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
-            if (!file) return output.emit('error', [
+            if (!file) return output.emit('error', new Error([
                 'module not found: "' + id + '" from file ',
                 parent.filename
-            ].join(''));
+            ].join('')));
             if (cb) cb(file);
             if (visited[file]) {
                 if (--pending === 0) output.queue(null);
@@ -132,10 +132,10 @@ module.exports = function (mains, opts) {
         nodeResolve(tr, params, function (err, res) {
             if (err) return cb(through());
             
-            if (!res) return output.emit('error', [
+            if (!res) return output.emit('error', new Error([
                 'cannot find transform module ', tr,
                 ' while transforming ', file
-            ].join(''));
+            ].join('')));
             cb(require(res)(file));
         });
     }
