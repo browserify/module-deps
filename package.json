@@ -1,6 +1,6 @@
 {
     "name": "module-deps",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
     "main": "index.js",
     "bin": {
@@ -11,7 +11,8 @@
         "JSONStream": "~0.4.3",
         "browser-resolve": "~0.0.3",
         "resolve": "~0.3.0",
-        "detective": "~2.0.0"
+        "detective": "~2.0.0",
+        "concat-stream": "~0.1.1"
     },
     "devDependencies": {
         "tap": "~0.4.0",

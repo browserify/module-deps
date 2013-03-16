@@ -6,6 +6,7 @@ var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
 var through = require('through');
+var concatStream = require('concat-stream');
 
 module.exports = function (mains, opts) {
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
@@ -82,12 +83,10 @@ module.exports = function (mains, opts) {
             if (trs.length === 0) return done();
             makeTransform(file, trs[0], function (s) {
                 s.on('error', output.emit.bind(output, 'error'));
-                var data = '';
-                s.on('data', function (buf) { data += buf });
-                s.on('end', function () {
+                s.pipe(concatStream(function (err, data) {
                     src = data;
                     ap(trs.slice(1));
-                });
+                }));
                 s.end(src);
             });
         })(transf);
