@@ -97,7 +97,13 @@ module.exports = function (mains, opts) {
     }
     
     function parseDeps (file, src) {
-        var deps = detective(src);
+        var deps;
+        try {
+            deps = detective(src);
+        } catch (ex) {
+            var message = ex && ex.message ? ex.message : ex;
+            return output.emit('error', new Error('Parsing file ' + file + ': ' + message));
+        }
         var p = deps.length;
         var current = { id: file, filename: file, paths: [] };
         var resolved = {};
