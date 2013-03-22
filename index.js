@@ -68,7 +68,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 applyTransforms(file, trx, src);
             });
-        });
+        }, {extensions: opts.extensions});
     }
     
     function applyTransforms (file, trx, src) {
@@ -133,7 +133,7 @@ module.exports = function (mains, opts) {
     function makeTransform (file, tr, cb) {
         if (typeof tr === 'function') return cb(tr(file));
         
-        var params = { basedir: path.dirname(file) };
+        var params = { basedir: path.dirname(file), extensions: opts.extensions };
         nodeResolve(tr, params, function (err, res) {
             if (err) return cb(through());
             
