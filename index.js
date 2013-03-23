@@ -67,6 +67,7 @@ module.exports = function (mains, opts) {
         ;
         
         if (opts.packageFilter) parent.packageFilter = opts.packageFilter;
+        if (opts.extensions) parent.extensions = opts.extensions;
         
         resolver(id, parent, function (err, file, pkg) {
             if (err) return output.emit('error', err);
@@ -90,7 +91,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 applyTransforms(file, trx, src, pkg);
             });
-        }, {extensions: opts.extensions});
+        });
     }
     
     function getTransform (pkg) {
@@ -188,7 +189,7 @@ module.exports = function (mains, opts) {
     function makeTransform (file, tr, cb) {
         if (typeof tr === 'function') return cb(null, tr(file));
         
-        var params = { basedir: path.dirname(file), extensions: opts.extensions };
+        var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
             if (err && again) return cb(err);
             
