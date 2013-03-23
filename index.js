@@ -38,6 +38,7 @@ module.exports = function (mains, opts) {
         pending ++;
         
         var trx = [];
+        parent.extensions = opts.extensions;
         parent.packageFilter = function (pkg) {
             if (opts.packageFilter) pkg = opts.packageFilter(pkg);
             
@@ -68,7 +69,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 applyTransforms(file, trx, src);
             });
-        }, {extensions: opts.extensions});
+        });
     }
     
     function applyTransforms (file, trx, src) {
