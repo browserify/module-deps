@@ -133,7 +133,7 @@ module.exports = function (mains, opts) {
     }
     
     function makeTransform (file, tr, cb) {
-        if (typeof tr === 'function') return cb(tr(file));
+        if (typeof tr === 'function') return cb(null, tr(file));
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function (err, res) {
