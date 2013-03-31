@@ -81,7 +81,9 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            makeTransform(file, trs[0], function (s) {
+            makeTransform(file, trs[0], function (err, s) {
+                if (err) return output.emit('error', err);
+                
                 s.on('error', output.emit.bind(output, 'error'));
                 s.pipe(concatStream(function (err, data) {
                     src = data;
@@ -135,13 +137,14 @@ module.exports = function (mains, opts) {
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function (err, res) {
-            if (err) return cb(through());
+            if (err) return cb(err)
             
-            if (!res) return output.emit('error', new Error([
+            if (!res) return cb(new Error([
                 'cannot find transform module ', tr,
                 ' while transforming ', file
             ].join('')));
-            cb(require(res)(file));
+            
+            cb(null, require(res)(file));
         });
     }
 };
