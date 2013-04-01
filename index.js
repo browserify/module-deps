@@ -99,12 +99,12 @@ module.exports = function (mains, opts) {
     }
     
     function parseDeps (file, src) {
-        var deps;
-        try {
-            deps = detective(src);
-        } catch (ex) {
+        try { var deps = detective(src) }
+        catch (ex) {
             var message = ex && ex.message ? ex.message : ex;
-            return output.emit('error', new Error('Parsing file ' + file + ': ' + message));
+            return output.emit('error', new Error(
+                'Parsing file ' + file + ': ' + message
+            ));
         }
         var p = deps.length;
         var current = { id: file, filename: file, paths: [] };
@@ -136,8 +136,20 @@ module.exports = function (mains, opts) {
         if (typeof tr === 'function') return cb(null, tr(file));
         
         var params = { basedir: path.dirname(file) };
-        nodeResolve(tr, params, function (err, res) {
-            if (err) return cb(err)
+        nodeResolve(tr, params, function nr (err, res, again) {
+            if (err && again) return cb(err);
+            
+            if (err) {
+                return fs.stat(file, function (err_, s) {
+                    if (err_) return cb(err_);
+                    if (!s.isFIFO()) return cb(err);
+                    
+                    params.basedir = process.cwd();
+                    nodeResolve(tr, params, function (e, r) {
+                        nr(e, r, true)
+                    });
+                });
+            }
             
             if (!res) return cb(new Error([
                 'cannot find transform module ', tr,
