@@ -52,6 +52,10 @@ module.exports = function (mains, opts) {
         };
         
         resolve(id, parent, function (err, file) {
+            if (err || !file) {
+              pending -= 2;
+              if (pending === 0) setTimeout(output.queue.bind(output, null));
+            }
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
                 'module not found: "' + id + '" from file ',
