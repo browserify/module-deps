@@ -7,7 +7,7 @@
         "module-deps": "cmd.js"
     },
     "dependencies": {
-        "through": "~2.2.0",
+        "through": "~2.3.2",
         "JSONStream": "~0.4.3",
         "browser-resolve": "~0.1.0",
         "resolve": "~0.3.0",
