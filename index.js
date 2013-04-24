@@ -51,6 +51,9 @@ module.exports = function (mains, opts) {
             return pkg;
         };
         
+        if(opts.filter && !opts.filter(id))
+            return cb(false);
+        
         resolve(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
