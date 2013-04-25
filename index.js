@@ -51,10 +51,6 @@ module.exports = function (mains, opts) {
             return pkg;
         };
         
-        if(opts.filter && !opts.filter(id)) {
-            if(cb) cb(false);
-            if (--pending === 0) output.queue(null);
-        }
         resolve(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
@@ -115,6 +111,12 @@ module.exports = function (mains, opts) {
         var resolved = {};
         
         deps.forEach(function (id) {
+            if(opts.filter && !opts.filter(id)) {
+                resolved[id] = false;
+                if (--p === 0) done();
+                return;
+            }
+
             walk(id, current, function (r) {
                 resolved[id] = r;
                 if (--p === 0) done();
