@@ -71,6 +71,10 @@ package.json at all.
 `opts.resolve(id, parent, cb)` signature that
 [browser-resolve](https://github.com/shtylman/node-browser-resolve) has
 
+* opts.filter - a function (id) to skip resolution of some module `id` strings.
+If defined, `opts.filter(id)` should return truthy for all the ids to include
+and falsey for all the ids to skip.
+
 * opts.packageFilter - transform the parsed package.json contents before using
 the values. `opts.packageFilter(pkg)` should return the new `pkg` object to use.
 
