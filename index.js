@@ -111,6 +111,12 @@ module.exports = function (mains, opts) {
         var resolved = {};
         
         deps.forEach(function (id) {
+            if(opts.filter && !opts.filter(id)) {
+                resolved[id] = false;
+                if (--p === 0) done();
+                return;
+            }
+
             walk(id, current, function (r) {
                 resolved[id] = r;
                 if (--p === 0) done();
