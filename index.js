@@ -99,12 +99,18 @@ module.exports = function (mains, opts) {
     }
     
     function parseDeps (file, src) {
-        try { var deps = detective(src) }
-        catch (ex) {
-            var message = ex && ex.message ? ex.message : ex;
-            return output.emit('error', new Error(
-                'Parsing file ' + file + ': ' + message
-            ));
+        var deps;
+        if (/\.json$/.test(file)) {
+            deps = [];
+        }
+        else {
+            try { deps = detective(src) }
+            catch (ex) {
+                var message = ex && ex.message ? ex.message : ex;
+                return output.emit('error', new Error(
+                    'Parsing file ' + file + ': ' + message
+                ));
+            }
         }
         var p = deps.length;
         var current = { id: file, filename: file, paths: [] };
