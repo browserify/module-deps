@@ -39,6 +39,7 @@ module.exports = function (mains, opts) {
         
         var trx = [];
         parent.extensions = opts.extensions;
+        parent.modules = opts.modules;
         parent.packageFilter = function (pkg) {
             if (opts.packageFilter) pkg = opts.packageFilter(pkg);
             
