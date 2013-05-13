@@ -38,6 +38,7 @@ module.exports = function (mains, opts) {
         pending ++;
         
         var trx = [];
+        parent.extensions = opts.extensions;
         parent.packageFilter = function (pkg) {
             if (opts.packageFilter) pkg = opts.packageFilter(pkg);
             
