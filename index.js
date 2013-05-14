@@ -5,6 +5,7 @@ var spawn = require('child_process').spawn;
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
+var investigator = require('module-investigator');
 var through = require('through');
 var concatStream = require('concat-stream');
 
@@ -99,12 +100,21 @@ module.exports = function (mains, opts) {
     }
     
     function parseDeps (file, src) {
-        var deps;
+        var deps, info, format;
         if (/\.json$/.test(file)) {
             deps = [];
         }
         else {
-            try { deps = detective(src) }
+            try { 
+                if (opts.amdMode) {
+                    info = investigator(src);
+                    format = info.dependencies.amd.length ? 'amd' : 'commonJS';
+                    deps = info.dependencies[format];
+                }
+                else {
+                  deps = detective(src);
+                }
+            }
             catch (ex) {
                 var message = ex && ex.message ? ex.message : ex;
                 return output.emit('error', new Error(
@@ -136,6 +146,9 @@ module.exports = function (mains, opts) {
                 source: src,
                 deps: resolved
             };
+            if (opts.amdMode) {
+              rec.format = format;
+            }
             if (mains.indexOf(file) >= 0) {
                 rec.entry = true;
             }

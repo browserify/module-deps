@@ -78,6 +78,8 @@ and falsey for all the ids to skip.
 * opts.packageFilter - transform the parsed package.json contents before using
 the values. `opts.packageFilter(pkg)` should return the new `pkg` object to use.
 
+* opts.amdMode - check for AMD-style dependencies as well. Report dependency format for each file.
+
 # transforms
 
 module-deps can be configured to run source transformations on files before
