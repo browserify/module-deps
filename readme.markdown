@@ -63,6 +63,9 @@ Optionally pass in some `opts`:
 
 * opts.transform - a string or array of string transforms (see below)
 
+* opts.transformAll - setting to `true` will apply transformations to files
+in `node_modues`.
+
 * opts.transformKey - an array path of strings showing where to look in the
 package.json for source transformations. If falsy, don't look at the
 package.json at all.
@@ -104,9 +107,10 @@ readable/writable filter stream for transforming file contents, but this is an
 easy way to do it.
 
 When you call `mdeps()` with an `opts.transform`, the transformations you
-specify will not be run for any files in node_modules/. This is because modules
-you include should be self-contained and not need to worry about guarding
-themselves against transformations that may happen upstream.
+specify will not be run for any files in node_modules/ by default. This is
+because modules you include should be self-contained and not need to worry
+about guarding themselves against transformations that may happen upstream.
+If you have to have this behaviour you can pass `transformAll: true`.
 
 Modules can apply their own transformations by setting a transformation pipeline
 in their package.json at the `opts.transformKey` path. These transformations
