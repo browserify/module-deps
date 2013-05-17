@@ -29,7 +29,9 @@ module.exports = function (mains, opts) {
     mains.forEach(function (main) { walk(main, top) });
     
     if (mains.length === 0) {
-        process.nextTick(output.queue.bind(output, null));
+        output.pause();
+        output.queue(null);
+        process.nextTick(function () { output.resume() });
     }
     
     return output;
