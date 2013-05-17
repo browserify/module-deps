@@ -9,6 +9,8 @@ var through = require('through');
 var concatStream = require('concat-stream');
 
 module.exports = function (mains, opts) {
+    if (!opts) opts = {};
+    
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     mains = mains.map(function (file) {
         return path.resolve(file);
@@ -20,9 +22,7 @@ module.exports = function (mains, opts) {
     
     var output = through();
     
-    if (!opts) opts = {};
     var transforms = [].concat(opts.transform).filter(Boolean);
-    
     var resolve = opts.resolve || browserResolve;
     
     var top = { id: '/', filename: '/', paths: [] };
@@ -100,7 +100,10 @@ module.exports = function (mains, opts) {
     
     function parseDeps (file, src) {
         var deps;
-        if (/\.json$/.test(file)) {
+        if (opts.noParse && opts.noParse.indexOf(file) >= 0) {
+            deps = [];
+        }
+        else if (/\.json$/.test(file)) {
             deps = [];
         }
         else {
