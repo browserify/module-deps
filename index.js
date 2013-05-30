@@ -10,6 +10,7 @@ var concatStream = require('concat-stream');
 
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
+    var cache = opts.cache;
     
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     mains = mains.map(function (file) {
@@ -18,7 +19,6 @@ module.exports = function (mains, opts) {
     
     var visited = {};
     var pending = 0;
-    var cache = {};
     
     var output = through();
     
@@ -66,7 +66,10 @@ module.exports = function (mains, opts) {
             }
             visited[file] = true;
             
-            fs.readFile(file, 'utf8', function (err, src) {
+            if (cache && cache[file]) {
+                applyTransforms(file, trx, cache[file]);
+            }
+            else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
                 applyTransforms(file, trx, src);
             });
