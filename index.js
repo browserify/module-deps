@@ -53,8 +53,9 @@ module.exports = function (mains, opts) {
             return pkg;
         };
         
-        var resolver = opts.cache && typeof opts.cache[parent.id] === 'object'
-        && opts.cache[parent.id].deps[id]
+        var c = opts.cache && opts.cache[parent.id];
+        var resolver = c && typeof c === 'object'
+        && !Buffer.isBuffer(c) && c.deps[id]
             ? function (xid, xparent, cb) {
                 cb(null, opts.cache[parent.id].deps[id]);
             }
@@ -113,7 +114,7 @@ module.exports = function (mains, opts) {
     
     function parseDeps (file, src) {
         var deps;
-        if (typeof src === 'object') {
+        if (!Buffer.isBuffer(src) && typeof src === 'object') {
             deps = Object.keys(src.deps);
             src = src.source;
         }
