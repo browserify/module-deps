@@ -67,7 +67,7 @@ module.exports = function (mains, opts) {
             visited[file] = true;
             
             if (cache && cache[file]) {
-                applyTransforms(file, trx, cache[file]);
+                parseDeps(file, cache[file]);
             }
             else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
