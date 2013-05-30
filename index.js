@@ -53,7 +53,15 @@ module.exports = function (mains, opts) {
             return pkg;
         };
         
-        resolve(id, parent, function (err, file) {
+        var resolver = opts.cache && typeof opts.cache[parent.id] === 'object'
+        && opts.cache[parent.id].deps[id]
+            ? function (xid, xparent, cb) {
+                cb(null, opts.cache[parent.id].deps[id]);
+            }
+            : resolve;
+        ;
+        
+        resolver(id, parent, function (err, file) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
                 'module not found: "' + id + '" from file ',
@@ -105,7 +113,11 @@ module.exports = function (mains, opts) {
     
     function parseDeps (file, src) {
         var deps;
-        if (opts.noParse && opts.noParse.indexOf(file) >= 0) {
+        if (typeof src === 'object') {
+            deps = Object.keys(src.deps);
+            src = src.source;
+        }
+        else if (opts.noParse && opts.noParse.indexOf(file) >= 0) {
             deps = [];
         }
         else if (/\.json$/.test(file)) {

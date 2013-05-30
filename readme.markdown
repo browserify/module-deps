@@ -81,8 +81,7 @@ the values. `opts.packageFilter(pkg)` should return the new `pkg` object to use.
 * opts.noParse - an array of absolute paths to not parse for dependencies. Use
 this for large dependencies like jquery or threejs which take forever to parse.
 
-* opts.cache - an object mapping filenames to strings of file contents to skip
-doing fs.readFile() calls
+* opts.cache - an object mapping filenames to file objects to skip costly io
 
 # transforms
 
