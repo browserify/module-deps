@@ -39,20 +39,6 @@ module.exports = function (mains, opts) {
     function walk (id, parent, cb) {
         pending ++;
         
-        var trx = [];
-        parent.packageFilter = function (pkg) {
-            if (opts.packageFilter) pkg = opts.packageFilter(pkg);
-            
-            if (opts.transformKey) {
-                var n = pkg;
-                opts.transformKey.forEach(function (key) {
-                    if (n && typeof n === 'object') n = n[key];
-                });
-                trx = [].concat(n).filter(Boolean);
-            }
-            return pkg;
-        };
-        
         var c = opts.cache && opts.cache[parent.id];
         var resolver = c && typeof c === 'object'
         && !Buffer.isBuffer(c) && c.deps[id]
@@ -62,7 +48,7 @@ module.exports = function (mains, opts) {
             : resolve;
         ;
         
-        resolver(id, parent, function (err, file) {
+        resolver(id, parent, function (err, file, pkg) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
                 'module not found: "' + id + '" from file ',
@@ -75,17 +61,26 @@ module.exports = function (mains, opts) {
             }
             visited[file] = true;
             
+            var trx = [];
+            if (opts.transformKey) {
+                var n = pkg;
+                opts.transformKey.forEach(function (key) {
+                    if (n && typeof n === 'object') n = n[key];
+                });
+                trx = [].concat(n).filter(Boolean);
+            }
+            
             if (cache && cache[file]) {
-                parseDeps(file, cache[file]);
+                parseDeps(file, cache[file], pkg);
             }
             else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
-                applyTransforms(file, trx, src);
+                applyTransforms(file, trx, src, pkg);
             });
         });
     }
     
-    function applyTransforms (file, trx, src) {
+    function applyTransforms (file, trx, src, pkg) {
         var isTopLevel = mains.some(function (main) {
             var m = path.relative(path.dirname(main), file);
             return m.split('/').indexOf('node_modules') < 0;
@@ -108,11 +103,11 @@ module.exports = function (mains, opts) {
         })(transf);
         
         function done () {
-            parseDeps(file, src);
+            parseDeps(file, src, pkg);
         }
     }
     
-    function parseDeps (file, src) {
+    function parseDeps (file, src, pkg) {
         var deps;
         if (!Buffer.isBuffer(src) && typeof src === 'object') {
             deps = Object.keys(src.deps);
@@ -134,7 +129,7 @@ module.exports = function (mains, opts) {
             }
         }
         var p = deps.length;
-        var current = { id: file, filename: file, paths: [] };
+        var current = { id: file, filename: file, paths: [], package: pkg };
         var resolved = {};
         
         deps.forEach(function (id) {
@@ -143,7 +138,7 @@ module.exports = function (mains, opts) {
                 if (--p === 0) done();
                 return;
             }
-
+            
             walk(id, current, function (r) {
                 resolved[id] = r;
                 if (--p === 0) done();
