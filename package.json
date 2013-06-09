@@ -7,12 +7,12 @@
         "module-deps": "cmd.js"
     },
     "dependencies": {
-        "through": "~2.3.2",
-        "JSONStream": "~0.4.3",
+        "through": "~2.3.4",
+        "JSONStream": "~0.6.4",
         "browser-resolve": "git://github.com/jaredhanson/node-browser-resolve.git#dir-replace",
         "resolve": "~0.4.0",
         "detective": "~2.1.2",
-        "concat-stream": "~0.1.1"
+        "concat-stream": "~1.0.0"
     },
     "devDependencies": {
         "tap": "~0.4.0",

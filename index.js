@@ -94,7 +94,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 
                 s.on('error', output.emit.bind(output, 'error'));
-                s.pipe(concatStream(function (err, data) {
+                s.pipe(concatStream(function (data) {
                     src = data;
                     ap(trs.slice(1));
                 }));
