@@ -18,4 +18,5 @@ test('read from a stream', function (t) {
     }));
     
     tr.queue('t.ok(true)');
+    tr.queue(null);
 });
