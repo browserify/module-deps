@@ -48,6 +48,8 @@ module.exports = function (mains, opts) {
             : resolve;
         ;
         
+        if (opts.packageFilter) parent.packageFilter = opts.packageFilter;
+        
         resolver(id, parent, function (err, file, pkg) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([

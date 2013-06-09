@@ -11,6 +11,7 @@ test('pkg filter', function (t) {
         packageFilter: function (pkg) {
             t.equal(pkg.main, 'one.js');
             pkg.main = 'two.js'
+            return pkg;
         }
     });
     var pack = packer();
