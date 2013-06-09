@@ -1,18 +1,18 @@
 {
     "name": "module-deps",
-    "version": "0.10.1",
+    "version": "0.10.3",
     "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
     "main": "index.js",
     "bin": {
         "module-deps": "cmd.js"
     },
     "dependencies": {
-        "through": "~2.3.2",
-        "JSONStream": "~0.4.3",
-        "browser-resolve": "~0.1.0",
-        "resolve": "~0.3.0",
-        "detective": "~2.1.1",
-        "concat-stream": "~0.1.1"
+        "through": "~2.3.4",
+        "JSONStream": "~0.6.4",
+        "browser-resolve": "git://github.com/substack/node-browser-resolve.git#dir-replace",
+        "resolve": "~0.4.0",
+        "detective": "~2.1.2",
+        "concat-stream": "~1.0.0"
     },
     "devDependencies": {
         "tap": "~0.4.0",
