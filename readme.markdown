@@ -59,6 +59,8 @@ var mdeps = require('module-deps')
 Return a readable stream of javascript objects from an array of filenames
 `files`.
 
+Each file in `files` can be a string filename or a stream.
+
 Optionally pass in some `opts`:
 
 * opts.transform - a string or array of string transforms (see below)

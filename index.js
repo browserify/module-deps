@@ -6,7 +6,7 @@ var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
 var through = require('through');
-var concatStream = require('concat-stream');
+var concat = require('concat-stream');
 
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
@@ -14,7 +14,7 @@ module.exports = function (mains, opts) {
     
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     mains = mains.map(function (file) {
-        return path.resolve(file);
+        return typeof file === 'object' ? file : path.resolve(file);
     });
     
     var visited = {};
@@ -38,6 +38,24 @@ module.exports = function (mains, opts) {
     
     function walk (id, parent, cb) {
         pending ++;
+        
+        if (id && typeof id === 'object' && typeof id.pipe === 'function') {
+            return id.pipe(concat(function (src) {
+                var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
+                var basedir = opts.basedir || process.cwd();
+                var file = path.join(basedir, 'fake_' + n + '.js');
+                var pkgfile = path.join(basedir, 'package.json');
+                fs.readFile(pkgfile, function (err, pkgsrc) {
+                    var pkg = {};
+                    if (!err) {
+                        try { pkg = JSON.parse(pkgsrc) }
+                        catch (e) {};
+                    }
+                    var trx = getTransform(pkg);
+                    applyTransforms(file, trx, src, pkg);
+                });
+            }));
+        }
         
         var c = opts.cache && opts.cache[parent.id];
         var resolver = c && typeof c === 'object'
@@ -63,14 +81,7 @@ module.exports = function (mains, opts) {
             }
             visited[file] = true;
             
-            var trx = [];
-            if (opts.transformKey) {
-                var n = pkg;
-                opts.transformKey.forEach(function (key) {
-                    if (n && typeof n === 'object') n = n[key];
-                });
-                trx = [].concat(n).filter(Boolean);
-            }
+            var trx = getTransform(pkg);
             
             if (cache && cache[file]) {
                 parseDeps(file, cache[file], pkg);
@@ -80,6 +91,18 @@ module.exports = function (mains, opts) {
                 applyTransforms(file, trx, src, pkg);
             });
         });
+    }
+    
+    function getTransform (pkg) {
+        var trx = [];
+        if (opts.transformKey) {
+            var n = pkg;
+            opts.transformKey.forEach(function (key) {
+                if (n && typeof n === 'object') n = n[key];
+            });
+            trx = [].concat(n).filter(Boolean);
+        }
+        return trx;
     }
     
     function applyTransforms (file, trx, src, pkg) {
@@ -96,7 +119,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 
                 s.on('error', output.emit.bind(output, 'error'));
-                s.pipe(concatStream(function (data) {
+                s.pipe(concat(function (data) {
                     src = data;
                     ap(trs.slice(1));
                 }));
