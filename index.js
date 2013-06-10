@@ -108,7 +108,7 @@ module.exports = function (mains, opts) {
     function applyTransforms (file, trx, src, pkg) {
         var isTopLevel = mains.some(function (main) {
             var m = path.relative(path.dirname(main), file);
-            return m.split('/').indexOf('node_modules') < 0;
+            return m.split('/').indexOf('node_modules') < 0 && m.split('/').indexOf('browser-builtins') < 0;
         });
         var transf = (isTopLevel ? transforms : []).concat(trx);
         if (transf.length === 0) return done();
