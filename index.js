@@ -13,8 +13,14 @@ module.exports = function (mains, opts) {
     var cache = opts.cache;
     
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
-    mains = mains.map(function (file) {
-        return typeof file === 'object' ? file : path.resolve(file);
+    var basedir = opts.basedir || process.cwd();
+    
+    var entries = mains.map(function (file) {
+        if (file && typeof file.pipe === 'function') {
+            var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
+            return path.join(basedir, 'fake_' + n + '.js');
+        }
+        return path.resolve(file);
     });
     
     var visited = {};
@@ -26,7 +32,12 @@ module.exports = function (mains, opts) {
     var resolve = opts.resolve || browserResolve;
     
     var top = { id: '/', filename: '/', paths: [] };
-    mains.forEach(function (main) { walk(main, top) });
+    mains.forEach(function (main, ix) {
+        if (typeof main === 'object') {
+            walk({ stream: main, file: entries[ix] }, top);
+        }
+        else walk(main, top)
+    });
     
     if (mains.length === 0) {
         output.pause();
@@ -39,11 +50,8 @@ module.exports = function (mains, opts) {
     function walk (id, parent, cb) {
         pending ++;
         
-        if (id && typeof id === 'object' && typeof id.pipe === 'function') {
-            return id.pipe(concat(function (src) {
-                var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
-                var basedir = opts.basedir || process.cwd();
-                var file = path.join(basedir, 'fake_' + n + '.js');
+        if (typeof id === 'object') {
+            return id.stream.pipe(concat(function (src) {
                 var pkgfile = path.join(basedir, 'package.json');
                 fs.readFile(pkgfile, function (err, pkgsrc) {
                     var pkg = {};
@@ -52,7 +60,7 @@ module.exports = function (mains, opts) {
                         catch (e) {};
                     }
                     var trx = getTransform(pkg);
-                    applyTransforms(file, trx, src, pkg);
+                    applyTransforms(id.file, trx, src, pkg);
                 });
             }));
         }
@@ -177,7 +185,7 @@ module.exports = function (mains, opts) {
                 source: src,
                 deps: resolved
             };
-            if (mains.indexOf(file) >= 0) {
+            if (entries.indexOf(file) >= 0) {
                 rec.entry = true;
             }
             output.queue(rec);
