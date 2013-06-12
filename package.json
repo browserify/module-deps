@@ -9,7 +9,7 @@
     "dependencies": {
         "through": "~2.3.4",
         "JSONStream": "~0.6.4",
-        "browser-resolve": "git://github.com/substack/node-browser-resolve.git#dir-replace",
+        "browser-resolve": "1.1.0",
         "resolve": "~0.4.0",
         "detective": "~2.1.2",
         "concat-stream": "~1.0.0"
