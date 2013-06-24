@@ -76,6 +76,7 @@ module.exports = function (mains, opts) {
         
         if (opts.packageFilter) parent.packageFilter = opts.packageFilter;
         if (opts.extensions) parent.extensions = opts.extensions;
+        if (opts.modules) parent.modules = opts.modules;
         
         resolver(id, parent, function (err, file, pkg) {
             if (err) return output.emit('error', err);
