@@ -12,7 +12,8 @@
         "browser-resolve": "~1.1.0",
         "resolve": "~0.4.0",
         "detective": "~2.1.2",
-        "concat-stream": "~1.0.0"
+        "concat-stream": "~1.0.0",
+        "coffee-script": "*"
     },
     "devDependencies": {
         "tap": "~0.4.0",

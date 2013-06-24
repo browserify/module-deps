@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var spawn = require('child_process').spawn;
+var coffeescript = require('coffee-script');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -95,6 +96,19 @@ module.exports = function (mains, opts) {
             if (cache && cache[file]) {
                 parseDeps(file, cache[file], pkg);
             }
+            else if (path.extname(file) == '.coffee') {
+                try {
+                    var src = coffeescript.compile(fs.readFileSync(file, 'utf8', {filename: file}));
+                    applyTransforms(file, trx, src, pkg);
+                }
+                catch (ex) {
+                    var message = ex && ex.message ? ex.message : ex;
+                    return output.emit('error', new Error(
+                        'Compiling file ' + file + ': ' + message
+                    ));
+                }
+            }
+
             else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
                 applyTransforms(file, trx, src, pkg);
