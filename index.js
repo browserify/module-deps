@@ -203,15 +203,11 @@ module.exports = function (mains, opts) {
             if (err && again) return cb(err);
             
             if (err) {
-                return fs.stat(file, function (err_, s) {
-                    if (err_) return cb(err_);
-                    if (!s.isFIFO()) return cb(err);
-                    
-                    params.basedir = process.cwd();
-                    nodeResolve(tr, params, function (e, r) {
-                        nr(e, r, true)
-                    });
+                params.basedir = process.cwd();
+                nodeResolve(tr, params, function (e, r) {
+                    nr(e, r, true)
                 });
+                return;
             }
             
             if (!res) return cb(new Error([
