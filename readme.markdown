@@ -85,6 +85,9 @@ this for large dependencies like jquery or threejs which take forever to parse.
 
 * opts.cache - an object mapping filenames to file objects to skip costly io
 
+* opts.packageCache - an object mapping filenames to their parent package.json
+contents for browser fields, main entries, and transforms
+
 # transforms
 
 module-deps can be configured to run source transformations on files before
