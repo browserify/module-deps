@@ -11,6 +11,7 @@ var concat = require('concat-stream');
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
     var cache = opts.cache;
+    var pkgCache = opts.packageCache;
     
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     var basedir = opts.basedir || process.cwd();
@@ -65,11 +66,12 @@ module.exports = function (mains, opts) {
             }));
         }
         
-        var c = opts.cache && opts.cache[parent.id];
+        var c = cache && cache[parent.id];
         var resolver = c && typeof c === 'object'
         && !Buffer.isBuffer(c) && c.deps[id]
             ? function (xid, xparent, cb) {
-                cb(null, opts.cache[parent.id].deps[id]);
+                var file = cache[parent.id].deps[id];
+                cb(null, file, pkgCache && pkgCache[file]);
             }
             : resolve;
         ;
