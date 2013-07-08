@@ -26,11 +26,33 @@ module.exports = function (mains, opts) {
     
     var visited = {};
     var pending = 0;
+    var currentOrder = 0;
     
     var output = through();
     
     var transforms = [].concat(opts.transform).filter(Boolean);
     var resolve = opts.resolve || browserResolve;
+    
+    var pushResult = (function () {
+        var slots = {};
+        var upto = 0;
+        
+        return function (row, order) {
+            if (row === null) {
+                output.queue(null);
+            }
+            else if (order === upto) {
+                output.queue(row);
+                for (upto ++; slots[upto] !== undefined; upto++) {
+                    if (slots[upto]) output.queue(slots[upto]);
+                    delete slots[upto];
+                }
+            }
+            else {
+                slots[order] = row;
+            }
+        };
+    })();
     
     var top = { id: '/', filename: '/', paths: [] };
     mains.forEach(function (main, ix) {
@@ -50,6 +72,7 @@ module.exports = function (mains, opts) {
     
     function walk (id, parent, cb) {
         pending ++;
+        var order = currentOrder ++;
         
         if (typeof id === 'object') {
             return id.stream.pipe(concat(function (src) {
@@ -61,7 +84,7 @@ module.exports = function (mains, opts) {
                         catch (e) {};
                     }
                     var trx = getTransform(pkg);
-                    applyTransforms(id.file, trx, src, pkg);
+                    applyTransforms(id.file, trx, src, pkg, order);
                 });
             }));
         }
@@ -88,7 +111,8 @@ module.exports = function (mains, opts) {
             ].join('')));
             if (cb) cb(file);
             if (visited[file]) {
-                if (--pending === 0) output.queue(null);
+                pushResult(undefined, order);
+                if (--pending === 0) pushResult(null);
                 return;
             }
             visited[file] = true;
@@ -96,11 +120,11 @@ module.exports = function (mains, opts) {
             var trx = getTransform(pkg);
             
             if (cache && cache[file]) {
-                parseDeps(file, cache[file], pkg);
+                parseDeps(file, cache[file], pkg, order);
             }
             else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
-                applyTransforms(file, trx, src, pkg);
+                applyTransforms(file, trx, src, pkg, order);
             });
         });
     }
@@ -117,7 +141,7 @@ module.exports = function (mains, opts) {
         return trx;
     }
     
-    function applyTransforms (file, trx, src, pkg) {
+    function applyTransforms (file, trx, src, pkg, order) {
         var isTopLevel = mains.some(function (main) {
             var m = path.relative(path.dirname(main), file);
             return m.split('/').indexOf('node_modules') < 0;
@@ -140,14 +164,14 @@ module.exports = function (mains, opts) {
         })(transf);
         
         function done () {
-            parseDeps(file, src, pkg);
+            parseDeps(file, src, pkg, order);
         }
     }
     
-    function parseDeps (file, src, pkg) {
+    function parseDeps (file, src, pkg, order) {
         var deps;
         if (!Buffer.isBuffer(src) && typeof src === 'object') {
-            deps = Object.keys(src.deps);
+            deps = Object.keys(src.deps).sort();
             src = src.source;
         }
         else if (opts.noParse && opts.noParse.indexOf(file) >= 0) {
@@ -192,8 +216,8 @@ module.exports = function (mains, opts) {
             if (entries.indexOf(file) >= 0) {
                 rec.entry = true;
             }
-            output.queue(rec);
-            if (--pending === 0) output.queue(null);
+            pushResult(rec, order);
+            if (--pending === 0) pushResult(null);
         }
     }
     
