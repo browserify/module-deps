@@ -38,13 +38,12 @@ module.exports = function (mains, opts) {
         var upto = 0;
         
         return function (row, order) {
-            if (row === null) {
-                output.queue(null);
-            }
-            else if (order === upto) {
-                if (row) output.queue(row);
+            if (order === upto) {
+                if (row !== false) output.queue(row);
                 for (upto ++; slots[upto] !== undefined; upto++) {
-                    if (slots[upto]) output.queue(slots[upto]);
+                    if (slots[upto] !== false) {
+                        output.queue(slots[upto]);
+                    }
                     delete slots[upto];
                 }
             }
@@ -112,7 +111,7 @@ module.exports = function (mains, opts) {
             if (cb) cb(file);
             if (visited[file]) {
                 pushResult(false, order);
-                if (--pending === 0) pushResult(null);
+                if (--pending === 0) pushResult(null, currentOrder ++);
                 return;
             }
             visited[file] = true;
@@ -217,7 +216,7 @@ module.exports = function (mains, opts) {
                 rec.entry = true;
             }
             pushResult(rec, order);
-            if (--pending === 0) pushResult(null);
+            if (--pending === 0) pushResult(null, currentOrder ++);
         }
     }
     
