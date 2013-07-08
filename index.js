@@ -42,7 +42,7 @@ module.exports = function (mains, opts) {
                 output.queue(null);
             }
             else if (order === upto) {
-                output.queue(row);
+                if (row) output.queue(row);
                 for (upto ++; slots[upto] !== undefined; upto++) {
                     if (slots[upto]) output.queue(slots[upto]);
                     delete slots[upto];
@@ -111,7 +111,7 @@ module.exports = function (mains, opts) {
             ].join('')));
             if (cb) cb(file);
             if (visited[file]) {
-                pushResult(undefined, order);
+                pushResult(false, order);
                 if (--pending === 0) pushResult(null);
                 return;
             }
