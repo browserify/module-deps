@@ -26,38 +26,16 @@ module.exports = function (mains, opts) {
     
     var visited = {};
     var pending = 0;
-    var currentOrder = 0;
     
     var output = through();
     
     var transforms = [].concat(opts.transform).filter(Boolean);
     var resolve = opts.resolve || browserResolve;
     
-    var pushResult = (function () {
-        var slots = {};
-        var upto = 0;
-        var offset = 0;
-        
-        return function (row, order) {
-            if (row && opts.includeIndex) {
-                row.index = order;
-            }
-            
-            if (order === upto) {
-                if (row !== false) output.queue(row);
-                
-                for (upto ++; slots[upto] !== undefined; upto++) {
-                    if (slots[upto] !== false) {
-                        output.queue(slots[upto]);
-                    }
-                    delete slots[upto];
-                }
-            }
-            else {
-                slots[order] = row;
-            }
-        };
-    })();
+    function pushResult (row) {
+        output.queue(row);
+        if (--pending === 0) output.queue(null);
+    }
     
     var top = { id: '/', filename: '/', paths: [] };
     mains.forEach(function (main, ix) {
@@ -77,7 +55,6 @@ module.exports = function (mains, opts) {
     
     function walk (id, parent, cb) {
         pending ++;
-        var order = currentOrder ++;
         
         if (typeof id === 'object') {
             id.stream.pipe(concat(function (src) {
@@ -89,10 +66,10 @@ module.exports = function (mains, opts) {
                         catch (e) {};
                     }
                     var trx = getTransform(pkg);
-                    applyTransforms(id.file, trx, src, pkg, order);
+                    applyTransforms(id.file, trx, src, pkg);
                 });
             }));
-            if (cb) cb(false, order);
+            if (cb) cb(false);
             return;
         }
         
@@ -117,26 +94,19 @@ module.exports = function (mains, opts) {
                 parent.filename
             ].join('')));
             
-            if (cb && visited[file] !== undefined) {
-                cb(file, visited[file]);
-            }
-            else if (cb) cb(file, order);
+            if (cb) cb(file);
+            if (visited[file]) return;
             
-            if (visited[file] !== undefined) {
-                pushResult(false, order);
-                if (--pending === 0) pushResult(null, currentOrder ++);
-                return;
-            }
-            visited[file] = order;
+            visited[file] = true;
             
             var trx = getTransform(pkg);
             
             if (cache && cache[file]) {
-                parseDeps(file, cache[file], pkg, order);
+                parseDeps(file, cache[file], pkg);
             }
             else fs.readFile(file, 'utf8', function (err, src) {
                 if (err) return output.emit('error', err);
-                applyTransforms(file, trx, src, pkg, order);
+                applyTransforms(file, trx, src, pkg);
             });
         });
     }
@@ -153,7 +123,7 @@ module.exports = function (mains, opts) {
         return trx;
     }
     
-    function applyTransforms (file, trx, src, pkg, order) {
+    function applyTransforms (file, trx, src, pkg) {
         var isTopLevel = mains.some(function (main) {
             var m = path.relative(path.dirname(main), file);
             return m.split('/').indexOf('node_modules') < 0;
@@ -176,11 +146,11 @@ module.exports = function (mains, opts) {
         })(transf);
         
         function done () {
-            parseDeps(file, src, pkg, order);
+            parseDeps(file, src, pkg);
         }
     }
     
-    function parseDeps (file, src, pkg, order) {
+    function parseDeps (file, src, pkg) {
         var deps;
         if (!Buffer.isBuffer(src) && typeof src === 'object') {
             deps = Object.keys(src.deps).sort();
@@ -227,17 +197,10 @@ module.exports = function (mains, opts) {
                 source: src,
                 deps: resolved
             };
-            if (opts.includeIndex) {
-                rec.indexDeps = {};
-                deps.forEach(function (id) {
-                    rec.indexDeps[id] = indexes[id];
-                });
-            }
             if (entries.indexOf(file) >= 0) {
                 rec.entry = true;
             }
-            pushResult(rec, order);
-            if (--pending === 0) pushResult(null, currentOrder ++);
+            pushResult(rec);
         }
     }
     
