@@ -36,14 +36,23 @@ module.exports = function (mains, opts) {
     var pushResult = (function () {
         var slots = {};
         var upto = 0;
+        var offset = 0;
         
         return function (row, order) {
+            if (row && opts.includeIndex) {
+                row.index = order - offset;
+            }
+            
             if (order === upto) {
-                if (row !== false) output.queue(row);
+                if (row === false) offset ++;
+                else output.queue(row);
+                
                 for (upto ++; slots[upto] !== undefined; upto++) {
-                    if (slots[upto] !== false) {
-                        output.queue(slots[upto]);
+                    if (slots[upto] === false) {
+                        offset ++
                     }
+                    else output.queue(slots[upto]);
+                    
                     delete slots[upto];
                 }
             }
