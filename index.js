@@ -95,7 +95,7 @@ module.exports = function (mains, opts) {
             ].join('')));
             
             if (cb) cb(file);
-            if (visited[file]) return;
+            if (visited[file]) return --pending;
             
             visited[file] = true;
             
