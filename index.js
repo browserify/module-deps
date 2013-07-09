@@ -83,7 +83,7 @@ module.exports = function (mains, opts) {
         var order = currentOrder ++;
         
         if (typeof id === 'object') {
-            return id.stream.pipe(concat(function (src) {
+            id.stream.pipe(concat(function (src) {
                 var pkgfile = path.join(basedir, 'package.json');
                 fs.readFile(pkgfile, function (err, pkgsrc) {
                     var pkg = {};
@@ -95,6 +95,7 @@ module.exports = function (mains, opts) {
                     applyTransforms(id.file, trx, src, pkg, order);
                 });
             }));
+            return order;
         }
         
         var c = cache && cache[parent.id];
@@ -135,6 +136,8 @@ module.exports = function (mains, opts) {
                 applyTransforms(file, trx, src, pkg, order);
             });
         });
+        
+        return order;
     }
     
     function getTransform (pkg) {
@@ -200,6 +203,7 @@ module.exports = function (mains, opts) {
         var p = deps.length;
         var current = { id: file, filename: file, paths: [], package: pkg };
         var resolved = {};
+        var indexes = {};
         
         deps.forEach(function (id) {
             if (opts.filter && !opts.filter(id)) {
@@ -208,7 +212,7 @@ module.exports = function (mains, opts) {
                 return;
             }
             
-            walk(id, current, function (r) {
+            indexes[id] = walk(id, current, function (r) {
                 resolved[id] = r;
                 if (--p === 0) done();
             });
@@ -221,6 +225,16 @@ module.exports = function (mains, opts) {
                 source: src,
                 deps: resolved
             };
+            if (opts.includeIndex) {
+                rec.indexDeps = {};
+                var offset = 0;
+                deps.forEach(function (id) {
+                    if (resolved[id]) {
+                        rec.indexDeps[id] = indexes[id] - offset;
+                    }
+                    else offset ++;
+                });
+            }
             if (entries.indexOf(file) >= 0) {
                 rec.entry = true;
             }
