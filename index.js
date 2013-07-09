@@ -95,7 +95,10 @@ module.exports = function (mains, opts) {
             ].join('')));
             
             if (cb) cb(file);
-            if (visited[file]) return --pending;
+            if (visited[file]) {
+                if (--pending === 0) output.queue(null);
+                return;
+            }
             
             visited[file] = true;
             
@@ -174,7 +177,6 @@ module.exports = function (mains, opts) {
         var p = deps.length;
         var current = { id: file, filename: file, paths: [], package: pkg };
         var resolved = {};
-        var indexes = {};
         
         deps.forEach(function (id) {
             if (opts.filter && !opts.filter(id)) {
@@ -183,9 +185,8 @@ module.exports = function (mains, opts) {
                 return;
             }
             
-            walk(id, current, function (r, index) {
+            walk(id, current, function (r) {
                 resolved[id] = r;
-                indexes[id] = index;
                 if (--p === 0) done();
             });
         });
