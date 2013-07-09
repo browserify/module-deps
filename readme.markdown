@@ -88,6 +88,10 @@ this for large dependencies like jquery or threejs which take forever to parse.
 * opts.packageCache - an object mapping filenames to their parent package.json
 contents for browser fields, main entries, and transforms
 
+* opts.includeIndex - include a numeric `row.index` and an object
+`row.indexDeps` like `row.deps`, but mapping require strings to row indices.
+`row.index` may skip some indices.
+
 # transforms
 
 module-deps can be configured to run source transformations on files before
