@@ -40,19 +40,16 @@ module.exports = function (mains, opts) {
         
         return function (row, order) {
             if (row && opts.includeIndex) {
-                row.index = order - offset;
+                row.index = order;
             }
             
             if (order === upto) {
-                if (row === false) offset ++;
-                else output.queue(row);
+                if (row !== false) output.queue(row);
                 
                 for (upto ++; slots[upto] !== undefined; upto++) {
-                    if (slots[upto] === false) {
-                        offset ++
+                    if (slots[upto] !== false) {
+                        output.queue(slots[upto]);
                     }
-                    else output.queue(slots[upto]);
-                    
                     delete slots[upto];
                 }
             }
@@ -95,7 +92,8 @@ module.exports = function (mains, opts) {
                     applyTransforms(id.file, trx, src, pkg, order);
                 });
             }));
-            return order;
+            if (cb) cb(false, order);
+            return;
         }
         
         var c = cache && cache[parent.id];
@@ -118,13 +116,18 @@ module.exports = function (mains, opts) {
                 'module not found: "' + id + '" from file ',
                 parent.filename
             ].join('')));
-            if (cb) cb(file);
-            if (visited[file]) {
+            
+            if (cb && visited[file] !== undefined) {
+                cb(file, visited[file]);
+            }
+            else if (cb) cb(file, order);
+            
+            if (visited[file] !== undefined) {
                 pushResult(false, order);
                 if (--pending === 0) pushResult(null, currentOrder ++);
                 return;
             }
-            visited[file] = true;
+            visited[file] = order;
             
             var trx = getTransform(pkg);
             
@@ -136,8 +139,6 @@ module.exports = function (mains, opts) {
                 applyTransforms(file, trx, src, pkg, order);
             });
         });
-        
-        return order;
     }
     
     function getTransform (pkg) {
@@ -212,8 +213,9 @@ module.exports = function (mains, opts) {
                 return;
             }
             
-            indexes[id] = walk(id, current, function (r) {
+            walk(id, current, function (r, index) {
                 resolved[id] = r;
+                indexes[id] = index;
                 if (--p === 0) done();
             });
         });
@@ -227,12 +229,8 @@ module.exports = function (mains, opts) {
             };
             if (opts.includeIndex) {
                 rec.indexDeps = {};
-                var offset = 0;
                 deps.forEach(function (id) {
-                    if (resolved[id]) {
-                        rec.indexDeps[id] = indexes[id] - offset;
-                    }
-                    else offset ++;
+                    rec.indexDeps[id] = indexes[id];
                 });
             }
             if (entries.indexOf(file) >= 0) {
