@@ -145,15 +145,26 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            makeTransform(file, trs[0], function (err, s) {
+            makeTransform(file, trs[0], function (err, transform) {
                 if (err) return output.emit('error', err);
-                
-                s.on('error', output.emit.bind(output, 'error'));
-                s.pipe(concat(function (data) {
-                    src = data;
-                    ap(trs.slice(1));
-                }));
-                s.end(src);
+
+                try {
+                    var s = transform(file, src);
+
+                    if (typeof s === 'string') {
+                        src = s;
+                        ap(trs.slice(1));
+                    } else {
+                        s.on('error', output.emit.bind(output, 'error'));
+                        s.pipe(concat(function (data) {
+                            src = data;
+                            ap(trs.slice(1));
+                        }));
+                        s.end(src);
+                    }
+                } catch (ex) {
+                    output.emit('error',ex);
+                }
             });
         })(transf);
         
@@ -215,7 +226,7 @@ module.exports = function (mains, opts) {
     }
     
     function makeTransform (file, tr, cb) {
-        if (typeof tr === 'function') return cb(null, tr(file));
+        if (typeof tr === 'function') return cb(null, tr);
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
@@ -234,7 +245,7 @@ module.exports = function (mains, opts) {
                 ' while transforming ', file
             ].join('')));
             
-            cb(null, require(res)(file));
+            cb(null, require(res));
         });
     }
 };
