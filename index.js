@@ -217,7 +217,7 @@ module.exports = function (mains, opts) {
     function makeTransform (file, tr, cb) {
         if (typeof tr === 'function') return cb(null, tr(file));
         
-        var params = { basedir: path.dirname(file) };
+        var params = { basedir: path.dirname(file), packageFilter: packageFilter };
         nodeResolve(tr, params, function nr (err, res, again) {
             if (err && again) return cb(err);
             
@@ -236,5 +236,11 @@ module.exports = function (mains, opts) {
             
             cb(null, require(res)(file));
         });
+        function packageFilter(info) {
+            if (typeof info.transform === 'string') {
+                info.main = info.transform
+            }
+            return info
+        }
     }
 };
