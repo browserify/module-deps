@@ -157,7 +157,7 @@ module.exports = function (mains, opts) {
             });
             trx = [].concat(n).filter(Boolean);
         }
-        return trx;
+        return trx.concat(opts.globalTransform || []);
     }
     
     function applyTransforms (file, trx, src, pkg) {

@@ -20,7 +20,7 @@ test('global transforms', function (t) {
     p.pipe(JSONStream.stringify()).pipe(pack).pipe(concat(function (src) {
         Function(['console'], src)({
             log: function (msg) {
-                t.equal(msg, '111111');
+                t.equal(msg, 111111);
             }
         });
     }));
