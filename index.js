@@ -11,7 +11,7 @@ var concat = require('concat-stream');
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
     var cache = opts.cache;
-    var pkgCache = opts.packageCache;
+    var pkgCache = opts.packageCache || {};
     
     if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     var basedir = opts.basedir || process.cwd();
@@ -38,17 +38,41 @@ module.exports = function (mains, opts) {
     }
     
     var top = { id: '/', filename: '/', paths: [] };
-    mains.forEach(function (main, ix) {
-        if (typeof main === 'object') {
-            walk({ stream: main, file: entries[ix] }, top);
-        }
-        else walk(main, top)
-    });
     
-    if (mains.length === 0) {
-        output.pause();
-        output.queue(null);
-        process.nextTick(function () { output.resume() });
+    (function () {
+        var pkgCount = mains.length;
+        if (pkgCount === 0) next();
+        
+        mains.forEach(function (main) {
+            if (typeof main === 'object') return done();
+            var id = path.resolve(basedir, main);
+            if (pkgCache[id]) return done();
+            
+            var pkgfile = path.join(path.dirname(main), 'package.json');
+            fs.readFile(pkgfile, function (err, src) {
+                if (err) return done();
+                try { var pkg = JSON.parse(src) }
+                catch (err) { return done() }
+                pkgCache[id] = pkg;
+                done();
+            });
+        });
+        function done () { if (--pkgCount === 0) next() }
+    })();
+    
+    function next () {
+        mains.forEach(function (main, ix) {
+            if (typeof main === 'object') {
+                walk({ stream: main, file: entries[ix] }, top);
+            }
+            else walk(main, top)
+        });
+        
+        if (mains.length === 0) {
+            output.pause();
+            output.queue(null);
+            process.nextTick(function () { output.resume() });
+        }
     }
     
     return output;
@@ -101,6 +125,7 @@ module.exports = function (mains, opts) {
             }
             
             visited[file] = true;
+            if (!pkg && pkgCache[file]) pkg = pkgCache[file];
             
             var trx = getTransform(pkg);
             

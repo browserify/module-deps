@@ -2,6 +2,7 @@ var mdeps = require('../');
 var test = require('tap').test;
 var JSONStream = require('JSONStream');
 var packer = require('browser-pack');
+var concat = require('concat-stream');
 
 test('global transforms', function (t) {
     t.plan(1);
@@ -16,15 +17,11 @@ test('global transforms', function (t) {
     });
     var pack = packer();
     
-    p.pipe(JSONStream.stringify()).pipe(pack);
-    
-    var src = '';
-    pack.on('data', function (buf) { src += buf });
-    pack.on('end', function () {
-        Function(['console','t'], src)(t, {
+    p.pipe(JSONStream.stringify()).pipe(pack).pipe(concat(function (src) {
+        Function(['console'], src)({
             log: function (msg) {
                 t.equal(msg, '111111');
             }
         });
-    });
+    }));
 });
