@@ -13,9 +13,11 @@ test('read from a stream', function (t) {
     p.on('error', t.fail.bind(t));
     var pack = packer();
     
-    p.pipe(JSONStream.stringify()).pipe(pack).pipe(concat(function (src) {
-        Function(['t'],src)(t);
-    }));
+    p.pipe(JSONStream.stringify()).pipe(pack)
+        .pipe(concat({ encoding: 'string' }, function (src) {
+            Function(['t'], src)(t);
+        }))
+    ;
     
     tr.queue('t.ok(true)');
     tr.queue(null);

@@ -81,7 +81,7 @@ module.exports = function (mains, opts) {
         pending ++;
         
         if (typeof id === 'object') {
-            id.stream.pipe(concat(function (src) {
+            id.stream.pipe(concat({ encoding: 'string' }, function (src) {
                 var pkgfile = path.join(basedir, 'package.json');
                 fs.readFile(pkgfile, function (err, pkgsrc) {
                     var pkg = {};
@@ -174,7 +174,7 @@ module.exports = function (mains, opts) {
                 if (err) return output.emit('error', err);
                 
                 s.on('error', output.emit.bind(output, 'error'));
-                s.pipe(concat(function (data) {
+                s.pipe(concat({ encoding: 'string' }, function (data) {
                     src = data;
                     ap(trs.slice(1));
                 }));
