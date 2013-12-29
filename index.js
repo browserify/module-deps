@@ -7,7 +7,6 @@ var nodeResolve = require('resolve');
 var detective = require('detective');
 var through = require('through');
 var concat = require('concat-stream');
-var Readable = require('stream').Readable;
 
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
