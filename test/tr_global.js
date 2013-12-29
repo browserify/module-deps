@@ -9,8 +9,8 @@ test('global transforms', function (t) {
     var p = mdeps(__dirname + '/files/tr_global/main.js', {
         transform: [ 'tr-c', 'tr-d' ],
         globalTransform: [
-            __dirname + '/files/tr_global/tr-e',
-            __dirname + '/files/tr_global/tr-f'
+            __dirname + '/files/tr_global/node_modules/tr-e',
+            __dirname + '/files/tr_global/node_modules/tr-f'
         ],
         transformKey: [ 'browserify', 'transform' ]
     });
