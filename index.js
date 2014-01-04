@@ -50,7 +50,9 @@ module.exports = function (mains, opts) {
             if (pkgCache[id]) return done();
             
             lookupPkg(main, function (err, pkg) {
-                if (pkg) pkgCache[id] = pkg;
+                if (!pkg) pkg = {};
+                if (!pkg.__dirname) pkg.__dirname = path.dirname(id);
+                pkgCache[id] = pkg;
                 done();
             });
         });
@@ -113,7 +115,7 @@ module.exports = function (mains, opts) {
         if (opts.extensions) parent.extensions = opts.extensions;
         if (opts.modules) parent.modules = opts.modules;
         
-        resolver(id, parent, function (err, file, pkg) {
+        resolver(id, parent, function f (err, file, pkg) {
             if (err) return output.emit('error', err);
             if (!file) return output.emit('error', new Error([
                 'module not found: "' + id + '" from file ',
@@ -122,7 +124,13 @@ module.exports = function (mains, opts) {
             
             if (pkg && pkgdir) pkg.__dirname = pkgdir;
             if (!pkg || !pkg.__dirname) {
-                
+                lookupPkg(file, function (err, p) {
+                    if (!p) p = {};
+                    if (!p.__dirname) p.__dirname = path.dirname(file);
+                    pkgCache[file] = p;
+                    f(err, file, p);
+                });
+                return;
             }
             
             if (cb) cb(file);
