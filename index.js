@@ -7,6 +7,7 @@ var nodeResolve = require('resolve');
 var detective = require('detective');
 var through = require('through');
 var concat = require('concat-stream');
+var parents = require('parents');
 
 module.exports = function (mains, opts) {
     if (!opts) opts = {};
@@ -48,14 +49,18 @@ module.exports = function (mains, opts) {
             var id = path.resolve(basedir, main);
             if (pkgCache[id]) return done();
             
-            var pkgfile = path.join(path.dirname(main), 'package.json');
-            fs.readFile(pkgfile, function (err, src) {
-                if (err) return done();
-                try { var pkg = JSON.parse(src) }
-                catch (err) { return done() }
-                pkgCache[id] = pkg;
-                done();
-            });
+            var dirs = parents(path.dirname(main));
+            (function next () {
+                if (dirs.length === 0) return done();
+                var pkgfile = path.join(dirs.shift(), 'package.json');
+                fs.readFile(pkgfile, function (err, src) {
+                    if (err) return next();
+                    try { var pkg = JSON.parse(src) }
+                    catch (err) { return done() }
+                    pkgCache[id] = pkg;
+                    done();
+                });
+            })();
         });
         function done () { if (--pkgCount === 0) next() }
     })();
