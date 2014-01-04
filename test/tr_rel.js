@@ -5,7 +5,7 @@ var packer = require('browser-pack');
 
 test('transform', function (t) {
     t.plan(1);
-    var p = mdeps(__dirname + '/files/tr_rel/main.js', {
+    var p = mdeps(__dirname + '/files/tr_rel/subdir/main.js', {
         transformKey: [ 'browserify', 'transform' ]
     });
     var pack = packer();
