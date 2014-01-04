@@ -167,15 +167,14 @@ module.exports = function (mains, opts) {
         var trx = [];
         if (opts.transformKey) {
             var n = pkg;
-            opts.transformKey.forEach(function (key) {
-                if (n && typeof n === 'object') n = n[key];
-            });
-            trx = [].concat(n).filter(Boolean).map(function (x) {
-                if (pkg && pkg.__dirname && /^\./.test(x)) {
-                    return path.resolve(pkg.__dirname, x);
-                }
-                return x;
-            });
+            var keys = opts.transformKey;
+            for (var i = 0; i < keys.length; i++) {
+                if (n && typeof n === 'object') n = n[keys[i]];
+                else break;
+            }
+            if (i === keys.length) {
+                trx = [].concat(n).filter(Boolean);
+            }
         }
         return trx.concat(opts.globalTransform || []);
     }
@@ -190,7 +189,14 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            makeTransform(file, trs[0], function (err, s) {
+            makeTransform(file, trs[0], function f (err, s) {
+                if (err && pkg && pkg.__dirname) {
+                    var t = path.resolve(pkg.__dirname, trs[0]);
+                    return makeTransform(file, t, function (e, s_) {
+                        if (e) output.emit('error', e);
+                        else f(null, s_);
+                    });
+                }
                 if (err) return output.emit('error', err);
                 
                 s.on('error', output.emit.bind(output, 'error'));
@@ -279,7 +285,11 @@ module.exports = function (mains, opts) {
                 ' while transforming ', file
             ].join('')));
             
-            cb(null, require(res)(file));
+            var r = require(res);
+            if (typeof r !== 'function') {
+                cb(new Error('transform not a function'));
+            }
+            else cb(null, r(file));
         });
     }
 };
