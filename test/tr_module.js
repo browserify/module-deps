@@ -4,7 +4,7 @@ var JSONStream = require('JSONStream');
 var packer = require('browser-pack');
 
 test('transform', function (t) {
-    t.plan(3);
+    t.plan(4);
     var p = mdeps(__dirname + '/files/tr_module/main.js', {
         transform: [ 'insert-aaa', 'insert-bbb' ],
         transformKey: [ 'browserify', 'transform' ]
