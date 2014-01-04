@@ -52,11 +52,13 @@ module.exports = function (mains, opts) {
             var dirs = parents(path.dirname(main));
             (function next () {
                 if (dirs.length === 0) return done();
-                var pkgfile = path.join(dirs.shift(), 'package.json');
+                var dir = dirs.shift();
+                var pkgfile = path.join(dir, 'package.json');
                 fs.readFile(pkgfile, function (err, src) {
                     if (err) return next();
                     try { var pkg = JSON.parse(src) }
                     catch (err) { return done() }
+                    pkg.__dirname = dir;
                     pkgCache[id] = pkg;
                     done();
                 });
@@ -112,7 +114,12 @@ module.exports = function (mains, opts) {
             : resolve;
         ;
         
-        if (opts.packageFilter) parent.packageFilter = opts.packageFilter;
+        var pkgdir;
+        parent.packageFilter = function (p, x) {
+            pkgdir = x;
+            if (opts.packageFilter) return opts.packageFilter(p, x);
+            else return p;
+        };
         if (opts.extensions) parent.extensions = opts.extensions;
         if (opts.modules) parent.modules = opts.modules;
         
@@ -122,6 +129,8 @@ module.exports = function (mains, opts) {
                 'module not found: "' + id + '" from file ',
                 parent.filename
             ].join('')));
+            
+            if (pkg && pkgdir) pkg.__dirname = pkgdir;
             
             if (cb) cb(file);
             if (visited[file]) {
@@ -160,7 +169,12 @@ module.exports = function (mains, opts) {
             opts.transformKey.forEach(function (key) {
                 if (n && typeof n === 'object') n = n[key];
             });
-            trx = [].concat(n).filter(Boolean);
+            trx = [].concat(n).filter(Boolean).map(function (x) {
+                if (pkg && pkg.__dirname && /^\./.test(x)) {
+                    return path.resolve(pkg.__dirname, x);
+                }
+                return x;
+            });
         }
         return trx.concat(opts.globalTransform || []);
     }
