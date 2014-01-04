@@ -49,20 +49,10 @@ module.exports = function (mains, opts) {
             var id = path.resolve(basedir, main);
             if (pkgCache[id]) return done();
             
-            var dirs = parents(path.dirname(main));
-            (function next () {
-                if (dirs.length === 0) return done();
-                var dir = dirs.shift();
-                var pkgfile = path.join(dir, 'package.json');
-                fs.readFile(pkgfile, function (err, src) {
-                    if (err) return next();
-                    try { var pkg = JSON.parse(src) }
-                    catch (err) { return done() }
-                    pkg.__dirname = dir;
-                    pkgCache[id] = pkg;
-                    done();
-                });
-            })();
+            lookupPkg(main, function (err, pkg) {
+                if (pkg) pkgCache[id] = pkg;
+                done();
+            });
         });
         function done () { if (--pkgCount === 0) next() }
     })();
@@ -131,6 +121,9 @@ module.exports = function (mains, opts) {
             ].join('')));
             
             if (pkg && pkgdir) pkg.__dirname = pkgdir;
+            if (!pkg || !pkg.__dirname) {
+                
+            }
             
             if (cb) cb(file);
             if (visited[file]) {
@@ -282,3 +275,19 @@ module.exports = function (mains, opts) {
         });
     }
 };
+
+function lookupPkg (file, cb) {
+    var dirs = parents(path.dirname(file));
+    (function next () {
+        if (dirs.length === 0) return cb(null, undefined);
+        var dir = dirs.shift();
+        var pkgfile = path.join(dir, 'package.json');
+        fs.readFile(pkgfile, function (err, src) {
+            if (err) return next();
+            try { var pkg = JSON.parse(src) }
+            catch (err) { return cb(err) }
+            pkg.__dirname = dir;
+            cb(null, pkg);
+        });
+    })();
+}
