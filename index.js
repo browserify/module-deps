@@ -156,6 +156,14 @@ module.exports = function (mains, opts) {
                         + ' from file '
                         + parent.filename
                     );
+                    Object.keys(err).forEach(function (key) {
+                        e[key] = err[key];
+                    });
+                    if (err.code === 'ENOENT') {
+                        e.type = 'not found';
+                    }
+                    e.parent = parent.filename;
+                    e.filename = file;
                     return output.emit('error', e);
                 }
                 applyTransforms(file, trx, src, pkg);
