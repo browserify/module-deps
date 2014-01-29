@@ -50,6 +50,7 @@ module.exports = function (mains, opts) {
             if (pkgCache[id]) return done();
             
             lookupPkg(main, function (err, pkg) {
+                if (err) return output.emit('error', err);
                 if (!pkg) pkg = {};
                 if (!pkg.__dirname) pkg.__dirname = path.dirname(id);
                 pkgCache[id] = pkg;
@@ -125,6 +126,7 @@ module.exports = function (mains, opts) {
             if (pkg && pkgdir) pkg.__dirname = pkgdir;
             if (!pkg || !pkg.__dirname) {
                 lookupPkg(file, function (err, p) {
+                    if (err) return output.emit('error', err);
                     if (!p) p = {};
                     if (!p.__dirname) p.__dirname = path.dirname(file);
                     pkgCache[file] = p;
@@ -311,7 +313,11 @@ function lookupPkg (file, cb) {
         fs.readFile(pkgfile, function (err, src) {
             if (err) return next();
             try { var pkg = JSON.parse(src) }
-            catch (err) { return cb(err) }
+            catch (err) {
+                return cb(new Error([
+                    err + ' while parsing json file ' + pkgfile
+                ].join('')))
+            }
             pkg.__dirname = dir;
             cb(null, pkg);
         });
