@@ -11,7 +11,7 @@
     "JSONStream": "~0.7.1",
     "browser-resolve": "~1.2.2",
     "resolve": "~0.6.0",
-    "detective": "~2.1.2",
+    "detective": "~2.4.0",
     "concat-stream": "~1.4.1",
     "minimist": "~0.0.5",
     "parents": "0.0.2"
