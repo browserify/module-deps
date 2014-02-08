@@ -236,20 +236,20 @@ module.exports = function (mains, opts) {
             deps = [];
         }
         else {
-            try { deps = mine(src) }
+            try { var depRows = mine(src) }
             catch (ex) {
                 var message = ex && ex.message ? ex.message : ex;
                 return output.emit('error', new Error(
                     'Parsing file ' + file + ': ' + message
                 ));
             }
+            deps = depRows.map(function (d) { return d.name });
         }
         var p = deps.length;
         var current = { id: file, filename: file, paths: [], package: pkg };
         var resolved = {};
         
-        deps.forEach(function (dep) {
-            var id = dep.name;
+        deps.forEach(function (id) {
             if (opts.filter && !opts.filter(id)) {
                 resolved[id] = false;
                 if (--p === 0) done();
