@@ -4,7 +4,7 @@ var spawn = require('child_process').spawn;
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
-var detective = require('detective');
+var mine = require('mine');
 var through = require('through');
 var concat = require('concat-stream');
 var parents = require('parents');
@@ -236,7 +236,7 @@ module.exports = function (mains, opts) {
             deps = [];
         }
         else {
-            try { deps = detective(src) }
+            try { deps = mine(src) }
             catch (ex) {
                 var message = ex && ex.message ? ex.message : ex;
                 return output.emit('error', new Error(
@@ -248,7 +248,8 @@ module.exports = function (mains, opts) {
         var current = { id: file, filename: file, paths: [], package: pkg };
         var resolved = {};
         
-        deps.forEach(function (id) {
+        deps.forEach(function (dep) {
+            var id = dep.name;
             if (opts.filter && !opts.filter(id)) {
                 resolved[id] = false;
                 if (--p === 0) done();
