@@ -298,9 +298,12 @@ module.exports = function (mains, opts) {
             
             var r = require(res);
             if (typeof r !== 'function') {
-                cb(new Error('transform not a function'));
+                return cb(new Error('transform not a function'));
             }
-            else cb(null, r(file));
+            
+            var trs = r(file);
+            output.emit('transform', trs, file);
+            cb(null, trs);
         });
     }
 };
