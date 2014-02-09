@@ -199,10 +199,16 @@ module.exports = function (mains, opts) {
         
         (function ap (trs) {
             if (trs.length === 0) return done();
-            makeTransform(file, trs[0], function f (err, s) {
+            var tr = trs[0], trOpts = {};
+            if (Array.isArray(tr)) {
+                trOpts = tr[1];
+                tr = tr[0];
+            }
+            
+            makeTransform(file, [ tr, trOpts ], function f (err, s) {
                 if (err && pkg && pkg.__dirname) {
-                    var t = path.resolve(pkg.__dirname, trs[0]);
-                    return makeTransform(file, t, function (e, s_) {
+                    var t = path.resolve(pkg.__dirname, tr);
+                    return makeTransform(file, [ t, trOpts ], function (e, s_) {
                         if (e) output.emit('error', e);
                         else f(null, s_);
                     });
@@ -276,8 +282,9 @@ module.exports = function (mains, opts) {
         }
     }
     
-    function makeTransform (file, tr, cb) {
-        if (typeof tr === 'function') return cb(null, tr(file));
+    function makeTransform (file, tpair, cb) {
+        var tr = tpair[0], trOpts = tpair[1];
+        if (typeof tr === 'function') return cb(null, tr(file, trOpts));
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
@@ -301,7 +308,7 @@ module.exports = function (mains, opts) {
                 return cb(new Error('transform not a function'));
             }
             
-            var trs = r(file);
+            var trs = r(file, trOpts);
             output.emit('transform', trs, file);
             cb(null, trs);
         });
