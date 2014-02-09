@@ -130,6 +130,44 @@ in their package.json at the `opts.transformKey` path. These transformations
 only apply to the files directly in the module itself, not to the module's
 dependants nor to its dependencies.
 
+## package.json transformKey
+
+Transform keys live at a configurable location in the package.json denoted by
+the `opts.transformKey` array.
+
+For a transformKey of `['foo','bar']`, the transformKey can be a single string
+(`"fff"`):
+
+``` json
+{
+  "foo": {
+    "bar": "fff"
+  }
+}
+```
+
+or an array of strings (`["fff","ggg"]`):
+
+``` json
+{
+  "foo": {
+    "bar": ["fff","ggg"]
+  }
+}
+```
+
+If you want to pass options to the transforms, you can use a 2-element array
+inside of the primary array. Here `fff` gets an options object with `{"x":3}`
+and `ggg` gets `{"y":4}`:
+
+``` json
+{
+  "foo": {
+    "bar": [["fff",{"x":3}],["ggg",{"y":4}]]
+  }
+}
+```
+
 # install
 
 With [npm](http://npmjs.org), to get the module do:
