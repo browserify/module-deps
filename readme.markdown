@@ -54,9 +54,9 @@ usage: module-deps [files]
 var mdeps = require('module-deps')
 ```
 
-## mdeps(files, opts={})
+## var d = mdeps(files, opts={})
 
-Return a readable stream of javascript objects from an array of filenames
+Return a readable stream `d` of javascript objects from an array of filenames
 `files`.
 
 Each file in `files` can be a string filename or a stream.
@@ -87,6 +87,13 @@ this for large dependencies like jquery or threejs which take forever to parse.
 
 * opts.packageCache - an object mapping filenames to their parent package.json
 contents for browser fields, main entries, and transforms
+
+# events
+
+## d.on('transform', function (tr, file) {})
+
+Every time a transform is applied to a `file`, a `'transform'` event fires with
+the instantiated transform stream `tr`.
 
 # transforms
 
