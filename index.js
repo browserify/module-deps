@@ -284,7 +284,11 @@ module.exports = function (mains, opts) {
     
     function makeTransform (file, tpair, cb) {
         var tr = tpair[0], trOpts = tpair[1];
-        if (typeof tr === 'function') return cb(null, tr(file, trOpts));
+        if (typeof tr === 'function') {
+            var t = tr(file, trOpts);
+            output.emit('transform', t, file);
+            return cb(null, t);
+        }
         
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
