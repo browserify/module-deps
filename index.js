@@ -18,7 +18,8 @@ module.exports = function (mains, opts) {
     var basedir = opts.basedir || process.cwd();
     
     var entries = mains.map(function (file) {
-        if (file && typeof file.pipe === 'function') {
+        if (file.path) return file.path;
+        if (typeof file.pipe === 'function') {
             var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
             return path.join(basedir, 'fake_' + n + '.js');
         }
