@@ -195,7 +195,15 @@ module.exports = function (mains, opts) {
             var m = path.relative(path.dirname(main), file);
             return m.split('/').indexOf('node_modules') < 0;
         });
-        var transf = (isTopLevel ? transforms : []).concat(trx);
+        
+        var transf;
+        if (opts.transformModules) {
+          transf = transforms.concat(trx);
+        } else {
+          transf = (isTopLevel ? transforms : []).concat(trx);
+        }
+
+        
         if (transf.length === 0) return done();
         
         (function ap (trs) {
