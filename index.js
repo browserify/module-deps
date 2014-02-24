@@ -4,7 +4,7 @@ var spawn = require('child_process').spawn;
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
-var mine = require('mine');
+var detective = require('detective');
 var through = require('through');
 var concat = require('concat-stream');
 var parents = require('parents');
@@ -243,14 +243,13 @@ module.exports = function (mains, opts) {
             deps = [];
         }
         else {
-            try { var depRows = mine(src) }
+            try { var deps = detective(src) }
             catch (ex) {
                 var message = ex && ex.message ? ex.message : ex;
                 return output.emit('error', new Error(
                     'Parsing file ' + file + ': ' + message
                 ));
             }
-            deps = depRows.map(function (d) { return d.name });
         }
         var p = deps.length;
         var current = { id: file, filename: file, paths: [], package: pkg };

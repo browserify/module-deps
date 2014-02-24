@@ -14,7 +14,7 @@
     "concat-stream": "~1.4.1",
     "minimist": "~0.0.5",
     "parents": "0.0.2",
-    "mine": "~0.0.1"
+    "detective": "~2.4.0"
   },
   "devDependencies": {
     "tape": "~2.3.2",
