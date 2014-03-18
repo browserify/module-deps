@@ -283,15 +283,23 @@ module.exports = function (mains, opts) {
     }
     
     function makeTransform (file, tpair, cb) {
-        var tr = tpair[0], trOpts = tpair[1];
+        var tr = tpair[0], trOpts = tpair[1], trArr;
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             output.emit('transform', t, file);
             return cb(null, t);
+        }else{
+            trArr = tr.split("/");
+            tr = trArr[0]
         }
-        
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
+            if(trArr.length > 1){
+                var resArr = res.split(path.sep)
+                resArr[resArr.length-1] = trArr.slice(1).join(path.sep);
+                res = resArr.join(path.sep);                
+            }
+
             if (err && again) return cb(err);
             
             if (err) {
