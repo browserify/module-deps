@@ -290,13 +290,14 @@ module.exports = function (mains, opts) {
             return cb(null, t);
         }else{
             trArr = tr.split("/");
-            tr = trArr[0]
+            tr = trArr.shift();
         }
         var params = { basedir: path.dirname(file) };
         nodeResolve(tr, params, function nr (err, res, again) {
+            var resArr;
             if(trArr.length > 1){
-                var resArr = res.split(path.sep)
-                resArr[resArr.length-1] = trArr.slice(1).join(path.sep);
+                resArr = res.split(path.sep);
+                resArr[resArr.length-1] = trArr.join(path.sep);
                 res = resArr.join(path.sep);                
             }
 
