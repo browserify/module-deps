@@ -289,7 +289,7 @@ module.exports = function (mains, opts) {
             output.emit('transform', t, file);
             return cb(null, t);
         }else{
-            trArr = tr.split("/");
+            trArr = tr.split(path.sep);
             tr = trArr.shift();
         }
         var params = { basedir: path.dirname(file) };

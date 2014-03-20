@@ -1,0 +1,5 @@
+{
+  "browserify": {
+    "transform": [ "tr-a/include.js", "tr-b" ]
+  }
+}
