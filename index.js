@@ -131,7 +131,7 @@ module.exports = function (mains, opts) {
                     if (!p) p = {};
                     if (!p.__dirname) p.__dirname = path.dirname(file);
                     pkgCache[file] = p;
-                    f(err, file, p);
+                    f(err, file, opts.packageFilter ? opts.packageFilter(p) : p);
                 });
                 return;
             }
