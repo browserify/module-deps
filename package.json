@@ -7,14 +7,14 @@
     "module-deps": "cmd.js"
   },
   "dependencies": {
-    "through": "~2.3.4",
     "JSONStream": "~0.7.1",
     "browser-resolve": "~1.2.2",
-    "resolve": "~0.6.0",
     "concat-stream": "~1.4.1",
+    "detective": "~3.1.0",
     "minimist": "~0.0.5",
     "parents": "0.0.2",
-    "detective": "~2.4.0"
+    "resolve": "~0.6.0",
+    "through": "~2.3.4"
   },
   "devDependencies": {
     "tape": "~2.3.2",
