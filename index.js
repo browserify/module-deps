@@ -39,7 +39,7 @@ module.exports = function (mains, opts) {
         if (--pending === 0) output.queue(null);
     }
     
-    var top = { id: '/', filename: '/', paths: [] };
+    var top = { id: '/', filename: '/', paths: paths() };
     
     (function () {
         var pkgCount = mains.length;
@@ -252,7 +252,7 @@ module.exports = function (mains, opts) {
             }
         }
         var p = deps.length;
-        var current = { id: file, filename: file, paths: [], package: pkg };
+        var current = { id: file, filename: file, paths: paths(), package: pkg };
         var resolved = {};
         
         deps.forEach(function (id) {
@@ -337,4 +337,8 @@ function lookupPkg (file, cb) {
             cb(null, pkg);
         });
     })();
+}
+
+function paths () {
+  return (process.env.NODE_PATH) ? process.env.NODE_PATH.split(':') : [];
 }
