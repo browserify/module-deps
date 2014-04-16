@@ -78,7 +78,8 @@ If defined, `opts.filter(id)` should return truthy for all the ids to include
 and falsey for all the ids to skip.
 
 * opts.packageFilter - transform the parsed package.json contents before using
-the values. `opts.packageFilter(pkg)` should return the new `pkg` object to use.
+the values. `opts.packageFilter(pkg, dir)` should return the new `pkg` object to
+use.
 
 * opts.noParse - an array of absolute paths to not parse for dependencies. Use
 this for large dependencies like jquery or threejs which take forever to parse.
