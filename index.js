@@ -338,11 +338,15 @@ Deps.prototype.lookupPackage = function (file, cb) {
     var id = path.resolve(this.basedir, file);
     var cached = this.pkgCache[id];
     if (cached) return nextTick(cb, null, cached);
+    if (cached === false) return nextTick(cb, null, undefined);
     
     var dirs = parents(path.dirname(file));
     
     (function next () {
-        if (dirs.length === 0) return cb(null, undefined);
+        if (dirs.length === 0) {
+            self.pkgCache[id] = false;
+            return cb(null, undefined);
+        }
         var dir = dirs.shift();
         if (dir.split('/').slice(-1)[0] === 'node_modules') {
             return cb(null, undefined);
@@ -352,6 +356,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
         
         var cached = self.pkgCache[pkgfile];
         if (cached) return nextTick(cb, null, cached);
+        else if (cached === false) return next();
         
         var pcached = self.pkgFileCachePending[pkgfile];
         if (pcached) return pcached.push(onpkg);
@@ -367,6 +372,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             }
             pkg.__dirname = dir;
             
+            self.pkgCache[pkgfile] = pkg;
             self.pkgCache[id] = pkg;
             onpkg(null, pkg);
         });
@@ -379,7 +385,10 @@ Deps.prototype.lookupPackage = function (file, cb) {
             }
             if (err) cb(err)
             else if (pkg) cb(null, pkg)
-            else next()
+            else {
+                self.pkgCache[pkgfile] = false;
+                next();
+            }
         }
     })();
 };
