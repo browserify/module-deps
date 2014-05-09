@@ -8,19 +8,18 @@
   },
   "dependencies": {
     "JSONStream": "~0.7.1",
-    "browser-resolve": "~1.2.2",
-    "concat-stream": "~1.4.1",
+    "browser-resolve": "~1.2.4",
+    "concat-stream": "~1.4.5",
     "detective": "~3.1.0",
-    "minimist": "~0.0.5",
+    "minimist": "~0.0.9",
     "parents": "0.0.2",
-    "resolve": "~0.6.0",
+    "resolve": "~0.6.3",
     "through": "~2.3.4",
-    "duplexer2": "0.0.2",
-    "right-indexof": "^1.0.0"
+    "duplexer2": "0.0.2"
   },
   "devDependencies": {
-    "tape": "~2.3.2",
-    "browser-pack": "~0.0.0"
+    "tape": "~2.12.3",
+    "browser-pack": "~2.0.1"
   },
   "scripts": {
     "test": "tape test/*.js"
