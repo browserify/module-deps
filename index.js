@@ -262,7 +262,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (err) return self.emit('error', err);
         if (self.visited[file]) {
             if (-- self.pending === 0) self.push(null);
-            return cb(null, file);
+            return cb && cb(null, file);
         }
         self.visited[file] = true;
         
