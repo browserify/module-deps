@@ -148,7 +148,8 @@ Deps.prototype.resolve = function (id, parent, cb) {
 Deps.prototype.readFile = function (file, pkg) {
     if (this.cache && this.cache[file]) {
         var tr = through();
-        tr.push(this.cache[file]);
+        tr.push(this.cache[file].source);
+        tr.push(null);
         return tr;
     }
     var rs = fs.createReadStream(file);
