@@ -281,7 +281,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                 if (--p === 0) done();
                 return;
             }
-            self.walk(id, current, function (r) {
+            self.walk(id, current, function (err, r) {
                 resolved[id] = r;
                 if (--p === 0) done();
             });
