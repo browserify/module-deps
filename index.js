@@ -102,15 +102,15 @@ Deps.prototype.resolve = function (id, parent, cb) {
     var self = this;
     var opts = self.options;
     
-    var c = this.cache && this.cache[parent.id];
-    var resolver = c && typeof c === 'object'
-    && !Buffer.isBuffer(c) && c.deps[id]
-        ? function (xid, xparent, fn) {
-            var file = self.cache[parent.id].deps[id];
-            fn(null, file, self.pkgCache && self.pkgCache[file]);
-        }
-        : self.resolver
-    ;
+    if (xhas(self.cache, parent.id, 'deps', id)
+    && self.cache[parent.id].deps) {
+        var file = self.cache[parent.id].deps[id];
+        var pkg = self.pkgCache[file];
+        if (pkg) return cb(null, file, pkg);
+        return self.lookupPackage(file, function (err, pkg) {
+            cb(null, file, pkg);
+        });
+    }
     
     var pkgdir;
     parent.packageFilter = function (p, x) {
@@ -154,6 +154,7 @@ Deps.prototype.readFile = function (file, pkg) {
     }
     var rs = fs.createReadStream(file);
     rs.on('error', function (err) { tr.emit('error', err) });
+    this.emit('file', file);
     return rs.pipe(this.getTransforms(file, pkg));
 };
 
@@ -264,6 +265,9 @@ Deps.prototype.walk = function (id, parent, cb) {
             return cb(null, file);
         }
         self.visited[file] = true;
+        
+        var c = self.cache && self.cache[file];
+        if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
         self.readFile(file, pkg).pipe(concat(function (body) {
             var src = body.toString('utf8');
@@ -412,4 +416,18 @@ function getTransforms (pkg, opts) {
 function nextTick (cb) {
     var args = [].slice.call(arguments, 1);
     process.nextTick(function () { cb.apply(null, args) });
+}
+
+function xhas (obj) {
+    if (!obj) return false;
+    for (var i = 1; i < arguments.length; i++) {
+        var key = arguments[i];
+        if (!has(obj, key)) return false;
+        obj = obj[key];
+    }
+    return true;
+}
+
+function has (obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
 }

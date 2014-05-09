@@ -99,6 +99,10 @@ in `process.env.NODE_PATH`
 Every time a transform is applied to a `file`, a `'transform'` event fires with
 the instantiated transform stream `tr`.
 
+## d.on('file', function (file) {})
+
+Every time a file is read, this event fires with the file path.
+
 # transforms
 
 module-deps can be configured to run source transformations on files before
