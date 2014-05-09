@@ -73,7 +73,7 @@ Deps.prototype._start = function () {
         if (!pkg.__dirname) pkg.__dirname = path.dirname(file);
         
         if (typeof main === 'object') {
-            self.walk({ stream: main, file: file }, main);
+            self.walk({ stream: main, file: main.path || file }, main);
         }
         else self.walk(main, self.top);
     }
@@ -87,7 +87,9 @@ Deps.prototype.add = function (main) {
         var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
         file = path.join(this.basedir, 'fake_' + n + '.js');
         if (typeof main.read !== 'function') {
+            var old = main;
             main = Readable().wrap(main);
+            if (old.path) main.path = old.path;
         }
     }
     else file = main;
@@ -99,24 +101,6 @@ Deps.prototype.add = function (main) {
 Deps.prototype.resolve = function (id, parent, cb) {
     var self = this;
     var opts = self.options;
-    
-    if (typeof id === 'object') {
-        id.stream.pipe(concat(function (body) {
-            var src = body.toString('utf8');
-            var pkgfile = path.join(self.basedir, 'package.json');
-            fs.readFile(pkgfile, function (err, pkgsrc) {
-                var pkg = {};
-                if (!err) {
-                    try { pkg = JSON.parse(pkgsrc) }
-                    catch (e) {};
-                }
-                var trx = getTransform(pkg);
-                applyTransforms(id.file, trx, src, pkg);
-            });
-        }));
-        if (cb) cb(false);
-        return;
-    }
     
     var c = this.cache && this.cache[parent.id];
     var resolver = c && typeof c === 'object'
