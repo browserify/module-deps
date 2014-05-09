@@ -174,13 +174,13 @@ Deps.prototype.getTransforms = function (file, pkg) {
     var output = through();
     var dup = duplexer(input, output);
     
-    for (var i = 0; i < transforms.length; i++) {
+    for (var i = 0; i < transforms.length; i++) (function (i) {
         makeTransform(transforms[i], function (err, trs) {
             if (err) return dup.emit('error', err)
-            streams.push(trs);
+            streams[i] = trs;
             if (-- pending === 0) done();
         });
-    }
+    })(i);
     return dup;
     
     function done () {
@@ -254,9 +254,8 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (err) return self.emit('error', err);
-        self.readFile(file).pipe(concat(function (body) {
+        self.readFile(file, pkg).pipe(concat(function (body) {
             var src = body.toString('utf8');
-console.log(src); 
             var deps = self.parseDeps(file, src);
             fromDeps(file, src, pkg, deps);
         }));
