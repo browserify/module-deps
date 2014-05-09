@@ -20,7 +20,7 @@ test('unicode deps', function (t) {
     
     p.on('data', function (row) { rows.push(row) });
     p.on('end', function () {
-        t.same(rows, [
+        t.same(rows.sort(cmp), [
             {
                 id: files.main,
                 source: sources.main,
@@ -37,6 +37,8 @@ test('unicode deps', function (t) {
                 source: sources.bar,
                 deps: {}
             }
-        ]);
+        ].sort(cmp));
     });
 });
+
+function cmp (a, b) { return a.id < b.id ? -1 : 1 }
