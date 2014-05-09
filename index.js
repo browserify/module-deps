@@ -337,7 +337,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
     
     var id = path.resolve(this.basedir, file);
     var cached = this.pkgCache[id];
-    if (cached) return process.nextTick(function () { cb(null, cached) });
+    if (cached) return nextTick(cb, null, cached);
     
     var dirs = parents(path.dirname(file));
     
@@ -350,9 +350,12 @@ Deps.prototype.lookupPackage = function (file, cb) {
         
         var pkgfile = path.join(dir, 'package.json');
         
-        var cached = self.pkgFileCachePending[pkgfile];
-        if (cached) return cached.push(onpkg);
-        cached = self.pkgFileCachePending[pkgfile] = [];
+        var cached = self.pkgCache[pkgfile];
+        if (cached) return nextTick(cb, null, cached);
+        
+        var pcached = self.pkgFileCachePending[pkgfile];
+        if (pcached) return pcached.push(onpkg);
+        pcached = self.pkgFileCachePending[pkgfile] = [];
         
         fs.readFile(pkgfile, function (err, src) {
             if (err) return onpkg();
