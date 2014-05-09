@@ -62,7 +62,6 @@ Deps.prototype._start = function () {
         var main = this.mains[i];
         var file = this.entries[i];
         
-        var id = path.resolve(this.basedir, main);
         this.lookupPackage(file, function (err, pkg) {
             if (err) return self.emit('error', err)
             else start(main, file, pkg)
@@ -86,7 +85,10 @@ Deps.prototype.add = function (main) {
     var file;
     if (typeof main.pipe === 'function') {
         var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
-        file = path.join(basedir, 'fake_' + n + '.js');
+        file = path.join(this.basedir, 'fake_' + n + '.js');
+        if (typeof main.read !== 'function') {
+            main = Readable().wrap(main);
+        }
     }
     else file = main;
     file = path.resolve(file);
@@ -98,10 +100,10 @@ Deps.prototype.resolve = function (id, parent, cb) {
     var self = this;
     var opts = self.options;
     
-    /*
     if (typeof id === 'object') {
-        id.stream.pipe(concat({ encoding: 'string' }, function (src) {
-            var pkgfile = path.join(basedir, 'package.json');
+        id.stream.pipe(concat(function (body) {
+            var src = body.toString('utf8');
+            var pkgfile = path.join(self.basedir, 'package.json');
             fs.readFile(pkgfile, function (err, pkgsrc) {
                 var pkg = {};
                 if (!err) {
@@ -115,8 +117,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
         if (cb) cb(false);
         return;
     }
-    */
-     
+    
     var c = this.cache && this.cache[parent.id];
     var resolver = c && typeof c === 'object'
     && !Buffer.isBuffer(c) && c.deps[id]
@@ -255,6 +256,16 @@ Deps.prototype.walk = function (id, parent, cb) {
     var self = this;
     var opts = self.options;
     this.pending ++;
+    
+    if (id && typeof id === 'object' && id.stream) {
+        return id.stream.pipe(concat(function (body) {
+            var src = body.toString('utf8');
+            var deps = self.parseDeps(id.file, src);
+            self.lookupPackage(id.file, function (err, pkg) {
+                fromDeps(id.file, src, pkg || {}, deps);
+            });
+        }));
+    }
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (err) return self.emit('error', err);
