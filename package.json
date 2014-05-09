@@ -15,7 +15,8 @@
     "parents": "0.0.2",
     "resolve": "~0.6.0",
     "through": "~2.3.4",
-    "duplexer2": "0.0.2"
+    "duplexer2": "0.0.2",
+    "right-indexof": "^1.0.0"
   },
   "devDependencies": {
     "tape": "~2.3.2",

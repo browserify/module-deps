@@ -329,9 +329,14 @@ Deps.prototype.lookupPackage = function (file, cb) {
     if (cached) return process.nextTick(function () { cb(null, cached) });
     
     var dirs = parents(path.dirname(file));
+    
     (function next () {
         if (dirs.length === 0) return cb(null, undefined);
         var dir = dirs.shift();
+        if (dir.split('/').slice(-1)[0] === 'node_modules') {
+            return cb(null, undefined);
+        }
+        
         var pkgfile = path.join(dir, 'package.json');
         
         var cached = self.pkgFileCachePending[pkgfile];
