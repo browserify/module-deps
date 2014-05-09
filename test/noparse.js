@@ -20,7 +20,7 @@ test('noParse', function (t) {
     
     p.on('data', function (row) { rows.push(row) });
     p.on('end', function () {
-        t.same(rows, [
+        t.deepEqual(rows.sort(cmp), [
             {
                 id: files.main,
                 source: sources.main,
@@ -32,6 +32,8 @@ test('noParse', function (t) {
                 source: sources.foo,
                 deps: {}
             }
-        ]);
+        ].sort(cmp));
     });
 });
+
+function cmp (a, b) { return a.id < b.id ? -1 : 1 }
