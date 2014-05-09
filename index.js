@@ -208,14 +208,14 @@ Deps.prototype.getTransforms = function (file, pkg) {
         }
     }
     
-    function loadTransform (file, trOpts, cb) {
+    function loadTransform (id, trOpts, cb) {
         var params = { basedir: path.dirname(file) };
-        nodeResolve(file, params, function nr (err, res, again) {
+        nodeResolve(id, params, function nr (err, res, again) {
             if (err && again) return cb(err);
             
             if (err) {
                 params.basedir = process.cwd();
-                return nodeResolve(file, params, function (e, r) {
+                return nodeResolve(id, params, function (e, r) {
                     nr(e, r, true)
                 });
             }
@@ -256,6 +256,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (err) return self.emit('error', err);
         self.readFile(file).pipe(concat(function (body) {
             var src = body.toString('utf8');
+console.log(src); 
             var deps = self.parseDeps(file, src);
             fromDeps(file, src, pkg, deps);
         }));
