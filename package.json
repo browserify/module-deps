@@ -14,10 +14,11 @@
     "minimist": "~0.0.9",
     "parents": "0.0.2",
     "resolve": "~0.6.3",
-    "through": "~2.3.4",
-    "duplexer2": "0.0.2"
+    "duplexer2": "0.0.2",
+    "through2": "~0.4.1"
   },
   "devDependencies": {
+    "through": "~2.3.4",
     "tape": "~2.12.3",
     "browser-pack": "~2.0.1"
   },
