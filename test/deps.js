@@ -1,6 +1,7 @@
 var parser = require('../');
 var test = require('tape');
 var fs = require('fs');
+var typewise = require('typewise');
 
 var files = {
     main: __dirname + '/files/main.js',
@@ -20,7 +21,7 @@ test('deps', function (t) {
     
     p.on('data', function (row) { rows.push(row) });
     p.on('end', function () {
-        t.same(rows, [
+        t.same(rows.sort(typewise.compare), [
             {
                 id: files.main,
                 source: sources.main,
@@ -37,6 +38,6 @@ test('deps', function (t) {
                 source: sources.bar,
                 deps: {}
             }
-        ]);
+        ].sort(typewise.compare));
     });
 });
