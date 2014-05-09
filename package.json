@@ -14,7 +14,8 @@
     "minimist": "~0.0.5",
     "parents": "0.0.2",
     "resolve": "~0.6.0",
-    "through": "~2.3.4"
+    "through": "~2.3.4",
+    "duplexer2": "0.0.2"
   },
   "devDependencies": {
     "tape": "~2.3.2",
