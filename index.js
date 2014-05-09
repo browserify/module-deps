@@ -31,6 +31,7 @@ function Deps (mains, opts) {
     this.pkgFileCache = {};
     this.pkgFileCachePending = {};
     this.visited = {};
+    this.walking = {};
     
     this.paths = opts.paths || process.env.NODE_PATH;
     if (typeof this.paths === 'string') {
@@ -58,15 +59,15 @@ Deps.prototype._read = function () {
 Deps.prototype._start = function () {
     var self = this;
     
-    for (var i = 0; i < this.entries.length; i++) {
-        var main = this.mains[i];
-        var file = this.entries[i];
+    for (var i = 0; i < this.entries.length; i++) (function (i) {
+        var main = self.mains[i];
+        var file = self.entries[i];
         
-        this.lookupPackage(file, function (err, pkg) {
+        self.lookupPackage(file, function (err, pkg) {
             if (err) return self.emit('error', err)
             else start(main, file, pkg)
         });
-    }
+    })(i);
     
     function start (main, file, pkg) {
         if (!pkg) pkg = {};
@@ -340,7 +341,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
     var self = this;
     
     var id = path.resolve(this.basedir, file);
-    var cached = this.pkgCache[id];
+    var cached = this.pkgCache[file];
     if (cached) return nextTick(cb, null, cached);
     if (cached === false) return nextTick(cb, null, undefined);
     
@@ -348,7 +349,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
     
     (function next () {
         if (dirs.length === 0) {
-            self.pkgCache[id] = false;
+            self.pkgCache[file] = false;
             return cb(null, undefined);
         }
         var dir = dirs.shift();
@@ -377,7 +378,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             pkg.__dirname = dir;
             
             self.pkgCache[pkgfile] = pkg;
-            self.pkgCache[id] = pkg;
+            self.pkgCache[file] = pkg;
             onpkg(null, pkg);
         });
         
