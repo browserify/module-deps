@@ -258,6 +258,12 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (err) return self.emit('error', err);
+        if (self.visited[file]) {
+            if (-- self.pending === 0) self.push(null);
+            return cb(null, file);
+        }
+        self.visited[file] = true;
+        
         self.readFile(file, pkg).pipe(concat(function (body) {
             var src = body.toString('utf8');
             var deps = self.parseDeps(file, src);
