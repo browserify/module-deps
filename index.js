@@ -59,6 +59,10 @@ Deps.prototype._read = function () {
 Deps.prototype._start = function () {
     var self = this;
     
+    if (this.entries.length === 0) {
+        return this.push(null);
+    }
+    
     for (var i = 0; i < this.entries.length; i++) (function (i) {
         var main = self.mains[i];
         var file = self.entries[i];
