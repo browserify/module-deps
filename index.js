@@ -254,13 +254,17 @@ Deps.prototype.walk = function (id, parent, cb) {
     this.pending ++;
     
     if (id && typeof id === 'object' && id.stream) {
-        return id.stream.pipe(concat(function (body) {
-            var src = body.toString('utf8');
-            var deps = self.parseDeps(id.file, src);
-            self.lookupPackage(id.file, function (err, pkg) {
-                fromDeps(id.file, src, pkg || {}, deps);
-            });
-        }));
+        self.lookupPackage(id.file, function (err, pkg) {
+            id.stream
+                .pipe(self.getTransforms(id.file, pkg))
+                .pipe(concat(function (body) {
+                    var src = body.toString('utf8');
+                    var deps = self.parseDeps(id.file, src);
+                    fromDeps(id.file, src, pkg || {}, deps);
+                }))
+            ;
+        });
+        return;
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
