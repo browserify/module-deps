@@ -210,7 +210,6 @@ Deps.prototype.getTransforms = function (file, pkg) {
         else {
             loadTransform(tr, trOpts, function (err, trs) {
                 if (err) return cb(err);
-                self.emit('transform', t, file);
                 cb(null, trs);
             });
         }
