@@ -333,9 +333,8 @@ Deps.prototype.parseDeps = function (file, src, cb) {
     
     try { var deps = detective(src) }
     catch (ex) {
-        return 
         var message = ex && ex.message ? ex.message : ex;
-        return output.emit('error', new Error(
+        return self.emit('error', new Error(
             'Parsing file ' + file + ': ' + message
         ));
     }
