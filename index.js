@@ -38,6 +38,7 @@ function Deps (mains, opts) {
         this.paths = process.env.NODE_PATH.split(':');
     }
     if (!this.paths) this.paths = [];
+    
     this.entries = [];
     this.mains = [];
     
