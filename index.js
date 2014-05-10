@@ -340,7 +340,6 @@ Deps.prototype.parseDeps = function (file, src, cb) {
 Deps.prototype.lookupPackage = function (file, cb) {
     var self = this;
     
-    var id = path.resolve(this.basedir, file);
     var cached = this.pkgCache[file];
     if (cached) return nextTick(cb, null, cached);
     if (cached === false) return nextTick(cb, null, undefined);
@@ -392,6 +391,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             else if (pkg) cb(null, pkg)
             else {
                 self.pkgCache[pkgfile] = false;
+                self.pkgCache[file] = false;
                 next();
             }
         }
