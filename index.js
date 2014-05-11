@@ -256,7 +256,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
                     var deps = self.parseDeps(id.file, src);
-                    fromDeps(id.file, src, pkg || {}, deps);
+                    if (deps) fromDeps(id.file, src, pkg || {}, deps);
                 }))
             ;
         });
@@ -277,7 +277,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         self.readFile(file, pkg).pipe(concat(function (body) {
             var src = body.toString('utf8');
             var deps = self.parseDeps(file, src);
-            fromDeps(file, src, pkg, deps);
+            if (deps) fromDeps(file, src, pkg, deps);
         }));
     });
     
@@ -333,9 +333,10 @@ Deps.prototype.parseDeps = function (file, src, cb) {
     try { var deps = detective(src) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
-        return this.emit('error', new Error(
+        this.emit('error', new Error(
             'Parsing file ' + file + ': ' + message
         ));
+        return;
     }
     return deps;
 };
