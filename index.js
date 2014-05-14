@@ -184,7 +184,7 @@ Deps.prototype.getTransforms = function (file, pkg) {
     
     for (var i = 0; i < transforms.length; i++) (function (i) {
         makeTransform(transforms[i], function (err, trs) {
-            if (err) return dup.emit('error', err)
+            if (err) return self.emit('error', err)
             streams[i] = trs;
             if (-- pending === 0) done();
         });
@@ -193,6 +193,9 @@ Deps.prototype.getTransforms = function (file, pkg) {
     
     function done () {
         var middle = combine.apply(null, streams);
+        middle.on('error', function (err) {
+            self.emit('error', err);
+        });
         input.pipe(middle).pipe(output);
     }
     
