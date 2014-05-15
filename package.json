@@ -4,7 +4,7 @@
   "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
   "main": "index.js",
   "bin": {
-    "module-deps": "cmd.js"
+    "module-deps": "bin/cmd.js"
   },
   "dependencies": {
     "JSONStream": "~0.7.1",
@@ -18,7 +18,8 @@
     "resolve": "~0.6.3",
     "stream-combiner": "~0.1.0",
     "through2": "~0.4.1",
-    "readable-stream": "^1.0.27-1"
+    "readable-stream": "^1.0.27-1",
+    "subarg": "0.0.1"
   },
   "devDependencies": {
     "through": "~2.3.4",
