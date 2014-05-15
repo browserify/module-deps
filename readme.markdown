@@ -176,6 +176,20 @@ and `ggg` gets `{"y":4}`:
 }
 ```
 
+# usage
+
+```
+module-deps [FILES] OPTIONS
+
+  Generate json output for the entry point FILES.
+
+OPTIONS are:
+
+  -t TRANSFORM  Apply a TRANSFORM.
+  -g TRANSFORM  Apply a global TRANSFORM.
+
+```
+
 # install
 
 With [npm](http://npmjs.org), to get the module do:
