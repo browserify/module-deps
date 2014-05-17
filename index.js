@@ -128,6 +128,12 @@ Deps.prototype.resolve = function (id, parent, cb) {
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
     
+    // for 'http:', let browserify support remote module
+    if (id.indexOf('http:') == 0 ) {
+        cb(null, id, pkg);
+        return;
+    };
+    
     self.resolver(id, parent, function onresolve (err, file, pkg) {
         if (err) return cb(err);
         if (!file) return cb(new Error(
@@ -158,10 +164,19 @@ Deps.prototype.readFile = function (file, pkg) {
         tr.push(null);
         return tr;
     }
-    var rs = fs.createReadStream(file);
-    rs.on('error', function (err) { tr.emit('error', err) });
-    this.emit('file', file);
-    return rs.pipe(this.getTransforms(file, pkg));
+    
+    // for 'http:', let browserify support remote module
+    if (file.indexOf('http:') == 0 ) {
+        request.get(file, function (err, res, body) {
+            console.log(res.statusCode);
+        });
+    }
+    else {
+        var rs = fs.createReadStream(file);
+        rs.on('error', function (err) { tr.emit('error', err) });
+        this.emit('file', file);
+        return rs.pipe(this.getTransforms(file, pkg));
+    }
 };
 
 Deps.prototype.getTransforms = function (file, pkg) {
@@ -277,11 +292,21 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
-        self.readFile(file, pkg).pipe(concat(function (body) {
-            var src = body.toString('utf8');
-            var deps = self.parseDeps(file, src);
-            if (deps) fromDeps(file, src, pkg, deps);
-        }));
+        // for 'http:', let browserify support remote module
+        if (file.indexOf('http:') == 0 ) {
+            request(file).pipe(concat(function (body) {
+                var src = body.toString('utf8');
+                var deps = self.parseDeps(file, src);
+                if (deps) fromDeps(file, src, pkg, deps);
+            }))
+        }
+        else {
+            self.readFile(file, pkg).pipe(concat(function (body) {
+                var src = body.toString('utf8');
+                var deps = self.parseDeps(file, src);
+                if (deps) fromDeps(file, src, pkg, deps);
+            }));
+        }
     });
     
     function fromDeps (file, src, pkg, deps) {
