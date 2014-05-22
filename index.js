@@ -398,7 +398,6 @@ Deps.prototype.lookupPackage = function (file, cb) {
             else if (pkg) cb(null, pkg)
             else {
                 self.pkgCache[pkgfile] = false;
-                self.pkgCache[file] = false;
                 next();
             }
         }
