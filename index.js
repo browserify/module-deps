@@ -152,8 +152,8 @@ Deps.prototype.resolve = function (id, parent, cb) {
 };
 
 Deps.prototype.readFile = function (file, pkg) {
+    var tr = through();
     if (this.cache && this.cache[file]) {
-        var tr = through();
         tr.push(this.cache[file].source);
         tr.push(null);
         return tr;
