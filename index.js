@@ -208,12 +208,12 @@ Deps.prototype.getTransforms = function (file, pkg) {
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             self.emit('transform', t, file);
-            nextTick(cb, null, t);
+            nextTick(cb, null, wrapTransform(t));
         }
         else {
             loadTransform(tr, trOpts, function (err, trs) {
                 if (err) return cb(err);
-                cb(null, trs);
+                cb(null, wrapTransform(trs));
             });
         }
     }
@@ -437,4 +437,11 @@ function xhas (obj) {
 
 function has (obj, key) {
     return Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+function wrapTransform (tr) {
+    if (typeof tr.read === 'function') return tr;
+    var input = through(), output = through();
+    input.pipe(tr).pipe(output);
+    return duplexer(input, output);
 }
