@@ -444,6 +444,6 @@ function wrapTransform (tr) {
     var input = through(), output = through();
     input.pipe(tr).pipe(output);
     var wrapper = duplexer(input, output);
-    tr.on('error', wrapper.emit.bind(wrapper, 'error');
+    tr.on('error', function (err) { wrapper.emit('error', err) });
     return wrapper;
 }
