@@ -168,7 +168,7 @@ Deps.prototype.getTransforms = function (file, pkg) {
     var self = this;
     var isTopLevel = this.entries.some(function (main) {
         var m = path.relative(path.dirname(main), file);
-        return m.split('/').indexOf('node_modules') < 0;
+        return m.split(/[\\\/]/).indexOf('node_modules') < 0;
     });
     
     var transforms = [].concat(isTopLevel ? this.transforms : [])
@@ -359,7 +359,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             return cb(null, undefined);
         }
         var dir = dirs.shift();
-        if (dir.split('/').slice(-1)[0] === 'node_modules') {
+        if (dir.split(/[\\\/]/).slice(-1)[0] === 'node_modules') {
             return cb(null, undefined);
         }
         
