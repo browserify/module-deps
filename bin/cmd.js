@@ -15,6 +15,7 @@ var stringify = JSONStream.stringify();
 stringify.pipe(process.stdout);
 
 var files = argv._.map(function (file) {
+    if (file === '-') return process.stdin;
     return path.resolve(file);
 });
 mdeps(files, argv).pipe(stringify);
