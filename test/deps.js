@@ -15,9 +15,10 @@ var sources = Object.keys(files).reduce(function (acc, file) {
 
 test('deps', function (t) {
     t.plan(1);
-    var p = parser(files.main);
-    var rows = [];
+    var p = parser();
+    p.end({ file: files.main, entry: true });
     
+    var rows = [];
     p.on('data', function (row) { rows.push(row) });
     p.on('end', function () {
         t.same(rows.sort(cmp), [
