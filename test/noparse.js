@@ -24,12 +24,14 @@ test('noParse', function (t) {
         t.deepEqual(rows.sort(cmp), [
             {
                 id: files.main,
+                file: files.main,
                 source: sources.main,
                 entry: true,
                 deps: { './foo': files.foo }
             },
             {
                 id: files.foo,
+                file: files.foo,
                 source: sources.foo,
                 deps: {}
             }

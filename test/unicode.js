@@ -24,17 +24,20 @@ test('unicode deps', function (t) {
         t.same(rows.sort(cmp), [
             {
                 id: files.main,
+                file: files.main,
                 source: sources.main,
                 entry: true,
                 deps: { './foo': files.foo }
             },
             {
                 id: files.foo,
+                file: files.foo,
                 source: sources.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
+                file: files.bar,
                 source: sources.bar,
                 deps: {}
             }

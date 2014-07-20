@@ -227,7 +227,6 @@ Deps.prototype.walk = function (id, parent, cb) {
         rec = copy(id);
         if (rec.entry === false) delete rec.entry;
         id = rec.file;
-        delete rec.file;
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
@@ -280,6 +279,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.id) rec.id = file;
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
+            if (!rec.file) rec.file = file;
             
             if (self.entries.indexOf(file) >= 0) {
                 rec.entry = true;

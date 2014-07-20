@@ -23,11 +23,13 @@ test('single id export', function (t) {
         t.same(rows.sort(cmp), [
             {
                 id: 'foo',
+                file: files.foo,
                 source: sources.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
+                file: files.bar,
                 source: sources.bar,
                 deps: {}
             }
