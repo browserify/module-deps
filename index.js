@@ -10,6 +10,7 @@ var concat = require('concat-stream');
 var parents = require('parents');
 var combine = require('stream-combiner');
 var duplexer = require('duplexer2');
+var copy = require('shallow-copy');
 
 var inherits = require('inherits');
 var Transform = require('readable-stream').Transform;
@@ -64,7 +65,7 @@ Deps.prototype._transform = function (row, enc, next) {
     function start (pkg) {
         if (!pkg) pkg = {};
         if (!pkg.__dirname) pkg.__dirname = path.dirname(row.file);
-        self.walk(row.file, self.top);
+        self.walk(row, self.top);
     }
 };
 
@@ -221,18 +222,12 @@ Deps.prototype.walk = function (id, parent, cb) {
     var opts = self.options;
     this.pending ++;
     
-    if (id && typeof id === 'object' && id.stream) {
-        self.lookupPackage(id.file, function (err, pkg) {
-            id.stream
-                .pipe(self.getTransforms(id.file, pkg))
-                .pipe(concat(function (body) {
-                    var src = body.toString('utf8');
-                    var deps = self.parseDeps(id.file, src);
-                    if (deps) fromDeps(id.file, src, pkg || {}, deps);
-                }))
-            ;
-        });
-        return;
+    var rec = {};
+    if (typeof id === 'object') {
+        rec = copy(id);
+        if (rec.entry === false) delete rec.entry;
+        id = rec.file;
+        delete rec.file;
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
@@ -277,11 +272,10 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (deps.length === 0) done();
         
         function done () {
-            var rec = {
-                id: file,
-                source: src,
-                deps: resolved
-            };
+            if (!rec.id) rec.id = file;
+            if (!rec.source) rec.source = src;
+            if (!rec.deps) rec.deps = resolved;
+            
             if (self.entries.indexOf(file) >= 0) {
                 rec.entry = true;
             }

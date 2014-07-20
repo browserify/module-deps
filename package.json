@@ -15,11 +15,12 @@
     "inherits": "~2.0.1",
     "minimist": "~0.0.9",
     "parents": "0.0.2",
-    "resolve": "~0.6.3",
-    "stream-combiner": "~0.1.0",
-    "through2": "~0.4.1",
     "readable-stream": "^1.0.27-1",
-    "subarg": "0.0.1"
+    "resolve": "~0.6.3",
+    "shallow-copy": "0.0.1",
+    "stream-combiner": "~0.1.0",
+    "subarg": "0.0.1",
+    "through2": "~0.4.1"
   },
   "devDependencies": {
     "through": "~2.3.4",
