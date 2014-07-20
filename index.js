@@ -44,7 +44,9 @@ function Deps (opts) {
     this.resolver = opts.resolve || browserResolve;
     this.options = opts;
     this.pending = 0;
-    this.top = { id: '/', filename: '/', paths: this.paths };
+    
+    var topfile = path.join(this.basedir, '__fake.js');
+    this.top = { id: topfile, filename: topfile, paths: this.paths };
 }
 
 Deps.prototype._transform = function (row, enc, next) {
