@@ -11,14 +11,15 @@ if (argv.help) return usage(0);
 
 var JSONStream = require('JSONStream');
 
-var stringify = JSONStream.stringify();
-stringify.pipe(process.stdout);
-
 var files = argv._.map(function (file) {
     if (file === '-') return process.stdin;
     return path.resolve(file);
 });
-mdeps(files, argv).pipe(stringify);
+var md = mdeps(argv);
+md.pipe(JSONStream.stringify()).pipe(process.stdout);
+
+files.forEach(function (file) { md.write(file) });
+md.end();
 
 function usage (code) {
     var r = fs.createReadStream(__dirname + '/usage.txt');
