@@ -15,7 +15,8 @@ var sources = Object.keys(files).reduce(function (acc, file) {
 
 test('noParse', function (t) {
     t.plan(1);
-    var p = parser(files.main, { noParse: [ files.foo ] });
+    var p = parser({ noParse: [ files.foo ] });
+    p.end(files.main);
     var rows = [];
     
     p.on('data', function (row) { rows.push(row) });

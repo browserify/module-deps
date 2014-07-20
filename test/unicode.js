@@ -15,7 +15,8 @@ var sources = Object.keys(files).reduce(function (acc, file) {
 
 test('unicode deps', function (t) {
     t.plan(1);
-    var p = parser(files.main);
+    var p = parser();
+    p.end(files.main);
     var rows = [];
     
     p.on('data', function (row) { rows.push(row) });
