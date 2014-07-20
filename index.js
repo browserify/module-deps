@@ -49,7 +49,10 @@ function Deps (opts) {
 Deps.prototype._transform = function (row, enc, next) {
     var self = this;
     self.pending ++;
-    if (row.entry) self.entries.push(row.file);
+    if (typeof row === 'string') {
+        row = { file: row };
+    }
+    if (row.entry !== false) self.entries.push(row.file);
     
     self.lookupPackage(row.file, function (err, pkg) {
         if (err) return self.emit('error', err)

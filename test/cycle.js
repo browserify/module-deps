@@ -6,7 +6,8 @@ var concat = require('concat-stream');
 
 test('cycle', function (t) {
     t.plan(1);
-    var p = mdeps(__dirname + '/cycle/main.js');
+    var p = mdeps();
+    p.end(__dirname + '/cycle/main.js');
     var pack = packer();
     
     p.pipe(JSONStream.stringify()).pipe(pack).pipe(concat(function (src) {
