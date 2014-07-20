@@ -12,18 +12,17 @@ var combine = require('stream-combiner');
 var duplexer = require('duplexer2');
 
 var inherits = require('inherits');
-var Readable = require('readable-stream').Readable;
+var Transform = require('readable-stream').Transform;
 
 module.exports = Deps;
-inherits(Deps, Readable);
+inherits(Deps, Transform);
 
-function Deps (mains, opts) {
+function Deps (opts) {
     var self = this;
-    if (!(this instanceof Deps)) return new Deps(mains, opts);
-    Readable.call(this, { objectMode: true });
+    if (!(this instanceof Deps)) return new Deps(opts);
+    Transform.call(this, { objectMode: true });
     
     if (!opts) opts = {};
-    if (!Array.isArray(mains)) mains = [ mains ].filter(Boolean);
     
     this.basedir = opts.basedir || process.cwd();
     this.cache = opts.cache;
@@ -32,6 +31,7 @@ function Deps (mains, opts) {
     this.pkgFileCachePending = {};
     this.visited = {};
     this.walking = {};
+    this.entries = [];
     
     this.paths = opts.paths || process.env.NODE_PATH;
     if (typeof this.paths === 'string') {
@@ -39,69 +39,35 @@ function Deps (mains, opts) {
     }
     if (!this.paths) this.paths = [];
     
-    this.entries = [];
-    this.mains = [];
-    
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
     this.options = opts;
     this.pending = 0;
     this.top = { id: '/', filename: '/', paths: this.paths };
-    
-    mains.forEach(function (file) { self.add(file) });
 }
 
-Deps.prototype._read = function () {
-    if (this._started) return;
-    this._started = true;
-    this._start();
-};
-
-Deps.prototype._start = function () {
+Deps.prototype._transform = function (row, enc, next) {
     var self = this;
+    self.pending ++;
+    if (row.entry) self.entries.push(row.file);
     
-    if (this.entries.length === 0) {
-        return this.push(null);
-    }
+    self.lookupPackage(row.file, function (err, pkg) {
+        if (err) return self.emit('error', err)
+        self.pending --;
+        start(pkg)
+    });
+    next();
     
-    for (var i = 0; i < this.entries.length; i++) (function (i) {
-        var main = self.mains[i];
-        var file = self.entries[i];
-        
-        self.lookupPackage(file, function (err, pkg) {
-            if (err) return self.emit('error', err)
-            else start(main, file, pkg)
-        });
-    })(i);
-    
-    function start (main, file, pkg) {
+    function start (pkg) {
         if (!pkg) pkg = {};
-        if (!pkg.__dirname) pkg.__dirname = path.dirname(file);
-        
-        if (typeof main === 'object') {
-            self.walk({ stream: main, file: main.path || file }, main);
-        }
-        else self.walk(main, self.top);
+        if (!pkg.__dirname) pkg.__dirname = path.dirname(row.file);
+        self.walk(row.file, self.top);
     }
 };
 
-Deps.prototype.add = function (main) {
-    var self = this;
-    
-    var file;
-    if (typeof main.pipe === 'function') {
-        var n = Math.floor(Math.pow(16,8) * Math.random()).toString(16);
-        file = path.join(this.basedir, 'fake_' + n + '.js');
-        if (typeof main.read !== 'function') {
-            var old = main;
-            main = Readable().wrap(main);
-            if (old.path) main.path = old.path;
-        }
-    }
-    else file = main;
-    file = path.resolve(file);
-    this.mains.push(main);
-    this.entries.push(file);
+Deps.prototype._flush = function () {
+    if (this.pending === 0) this.push(null);
+    this._ended = true;
 };
 
 Deps.prototype.resolve = function (id, parent, cb) {
@@ -319,7 +285,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             self.push(rec);
             
             if (cb) cb(null, file);
-            if (-- self.pending === 0) self.push(null);
+            if (-- self.pending === 0 && self._ended) self.push(null);
         }
     }
 };
