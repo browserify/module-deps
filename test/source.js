@@ -32,7 +32,7 @@ test('source', function (t) {
                 id: files.main,
                 source: sources.main,
                 entry: true,
-                deps: { './foo': files.foo }
+                deps: { './foo': files.foo, './extra.js': files.extra }
             },
             {
                 id: files.foo,

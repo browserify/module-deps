@@ -238,14 +238,19 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         self.visited[file] = true;
         
+        if (rec.source) return fromSource(rec.source);
+        
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
         self.readFile(file, pkg).pipe(concat(function (body) {
-            var src = body.toString('utf8');
+            fromSource(body.toString('utf8'));
+        }));
+        
+        function fromSource (src) {
             var deps = self.parseDeps(file, src);
             if (deps) fromDeps(file, src, pkg, deps);
-        }));
+        }
     });
     
     function fromDeps (file, src, pkg, deps) {
