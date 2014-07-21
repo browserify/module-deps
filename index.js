@@ -41,6 +41,7 @@ function Deps (opts) {
     if (!this.paths) this.paths = [];
     
     this.transforms = [].concat(opts.transform).filter(Boolean);
+    this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
     this.options = opts;
     this.pending = 0;
@@ -144,7 +145,10 @@ Deps.prototype.getTransforms = function (file, pkg) {
     });
     
     var transforms = [].concat(isTopLevel ? this.transforms : [])
-        .concat(getTransforms(pkg, this.options))
+        .concat(getTransforms(pkg, {
+            globalTransform: this.globalTransforms,
+            transformKey: this.options.transformKey
+        }))
     ;
     if (transforms.length === 0) return through();
     
