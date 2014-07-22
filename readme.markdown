@@ -11,11 +11,9 @@ walk the dependency graph to generate json output that can be fed into
 var mdeps = require('module-deps');
 var JSONStream = require('JSONStream');
 
-var stringify = JSONStream.stringify();
-stringify.pipe(process.stdout);
-
-var file = __dirname + '/files/main.js';
-mdeps(file).pipe(stringify);
+var md = mdeps();
+md.pipe(JSONStream.stringify()).pipe(process.stdout);
+md.end({ file: __dirname + '/files/main.js' });
 ```
 
 output:
@@ -56,8 +54,9 @@ var mdeps = require('module-deps')
 
 ## var d = mdeps(files, opts={})
 
-Return a readable stream `d` of javascript objects from an array of filenames
-`files`.
+Return an object transform stream `d` that expects entry filenames or
+`{ id: ..., file: ... }` objects as input and produces objects for every
+dependency from a recursive module traversal as output.
 
 Each file in `files` can be a string filename or a stream.
 
