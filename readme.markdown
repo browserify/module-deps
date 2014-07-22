@@ -76,6 +76,9 @@ package.json at all.
 If defined, `opts.filter(id)` should return truthy for all the ids to include
 and falsey for all the ids to skip.
 
+* `opts.postFilter` - a function (id, file, pkg) that gets called after `id` has
+been resolved. Return false to skip this file.
+
 * `opts.packageFilter` - transform the parsed package.json contents before using
 the values. `opts.packageFilter(pkg, dir)` should return the new `pkg` object to
 use.
