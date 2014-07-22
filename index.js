@@ -129,7 +129,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
     });
 };
 
-Deps.prototype.readFile = function (file, pkg) {
+Deps.prototype.readFile = function (file, id, pkg) {
     var tr = through();
     if (this.cache && this.cache[file]) {
         tr.push(this.cache[file].source);
@@ -138,7 +138,7 @@ Deps.prototype.readFile = function (file, pkg) {
     }
     var rs = fs.createReadStream(file);
     rs.on('error', function (err) { tr.emit('error', err) });
-    this.emit('file', file);
+    this.emit('file', file, id);
     return rs.pipe(this.getTransforms(file, pkg));
 };
 
@@ -275,7 +275,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
-        self.readFile(file, pkg).pipe(concat(function (body) {
+        self.readFile(file, id, pkg).pipe(concat(function (body) {
             fromSource(body.toString('utf8'));
         }));
         
