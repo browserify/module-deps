@@ -237,10 +237,14 @@ Deps.prototype.walk = function (id, parent, cb) {
     if (typeof id === 'object') {
         rec = copy(id);
         if (rec.entry === false) delete rec.entry;
-        id = rec.file;
+        id = rec.file || rec.id;
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
+        if (err && rec.source) {
+            file = rec.file;
+            return fromSource(rec.source);
+        }
         if (err && self.options.ignoreMissing) {
             if (-- self.pending === 0) self.push(null);
             self.emit('missing', id, parent);
