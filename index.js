@@ -59,6 +59,10 @@ Deps.prototype._transform = function (row, enc, next) {
     if (row.entry !== false) self.entries.push(row.file);
     
     self.lookupPackage(row.file, function (err, pkg) {
+        if (err && this.options.ignoreMissing) {
+            self.pending --;
+            return next();
+        }
         if (err) return self.emit('error', err)
         self.pending --;
         start(pkg)
@@ -236,6 +240,10 @@ Deps.prototype.walk = function (id, parent, cb) {
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
+        if (err && self.options.ignoreMissing) {
+            if (-- self.pending === 0) self.push(null);
+            return cb(null, undefined);
+        }
         if (err) return self.emit('error', err);
         if (self.visited[file]) {
             if (-- self.pending === 0) self.push(null);
