@@ -243,7 +243,13 @@ Deps.prototype.walk = function (id, parent, cb) {
     self.resolve(id, parent, function (err, file, pkg) {
         if (err && rec.source) {
             file = rec.file;
-            return fromSource(rec.source);
+            
+            var ts = self.getTransforms(file, pkg);
+            ts.pipe(concat(function (body) {
+                rec.source = body.toString('utf8');
+                fromSource(rec.source);
+            }));
+            return ts.end(rec.source);
         }
         if (err && self.options.ignoreMissing) {
             if (-- self.pending === 0) self.push(null);
@@ -257,7 +263,14 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         self.visited[file] = true;
         
-        if (rec.source) return fromSource(rec.source);
+        if (rec.source) {
+            var ts = self.getTransforms(file, pkg);
+            ts.pipe(concat(function (body) {
+                rec.source = body.toString('utf8');
+                fromSource(rec.source);
+            }));
+            return ts.end(rec.source);
+        }
         
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
