@@ -242,6 +242,7 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
+            if (--self.pending === 0) self.push(null);
             return cb(null, undefined);
         }
         if (err && rec.source) {
@@ -255,7 +256,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             return ts.end(rec.source);
         }
         if (err && self.options.ignoreMissing) {
-            if (-- self.pending === 0) self.push(null);
+            if (--self.pending === 0) self.push(null);
             self.emit('missing', id, parent);
             return cb(null, undefined);
         }
