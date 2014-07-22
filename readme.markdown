@@ -63,34 +63,36 @@ Each file in `files` can be a string filename or a stream.
 
 Optionally pass in some `opts`:
 
-* opts.transform - a string or array of string transforms (see below)
+* `opts.transform` - a string or array of string transforms (see below)
 
-* opts.transformKey - an array path of strings showing where to look in the
+* `opts.transformKey` - an array path of strings showing where to look in the
 package.json for source transformations. If falsy, don't look at the
 package.json at all.
 
-* opts.resolve - custom resolve function using the
+* `opts.resolve` - custom resolve function using the
 `opts.resolve(id, parent, cb)` signature that
 [browser-resolve](https://github.com/shtylman/node-browser-resolve) has
 
-* opts.filter - a function (id) to skip resolution of some module `id` strings.
+* `opts.filter` - a function (id) to skip resolution of some module `id` strings.
 If defined, `opts.filter(id)` should return truthy for all the ids to include
 and falsey for all the ids to skip.
 
-* opts.packageFilter - transform the parsed package.json contents before using
+* `opts.packageFilter` - transform the parsed package.json contents before using
 the values. `opts.packageFilter(pkg, dir)` should return the new `pkg` object to
 use.
 
-* opts.noParse - an array of absolute paths to not parse for dependencies. Use
+* `opts.noParse` - an array of absolute paths to not parse for dependencies. Use
 this for large dependencies like jquery or threejs which take forever to parse.
 
-* opts.cache - an object mapping filenames to file objects to skip costly io
+* `opts.cache` - an object mapping filenames to file objects to skip costly io
 
-* opts.packageCache - an object mapping filenames to their parent package.json
+* `opts.packageCache` - an object mapping filenames to their parent package.json
 contents for browser fields, main entries, and transforms
 
-* opts.paths - array of global paths to search. Defaults to splitting on `':'`
+* `opts.paths` - array of global paths to search. Defaults to splitting on `':'`
 in `process.env.NODE_PATH`
+
+* `opts.ignoreMissing` - ignore files that failed to resolve
 
 # events
 
@@ -102,6 +104,10 @@ the instantiated transform stream `tr`.
 ## d.on('file', function (file) {})
 
 Every time a file is read, this event fires with the file path.
+
+## d.on('missing', function (id, parent) {})
+
+When `opts.ignoreMissing` is enabled, this event fires for each missing package.
 
 # transforms
 

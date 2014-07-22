@@ -60,6 +60,7 @@ Deps.prototype._transform = function (row, enc, next) {
     
     self.lookupPackage(row.file, function (err, pkg) {
         if (err && this.options.ignoreMissing) {
+            self.emit('missing', row.file, self.top);
             self.pending --;
             return next();
         }
@@ -242,6 +243,7 @@ Deps.prototype.walk = function (id, parent, cb) {
     self.resolve(id, parent, function (err, file, pkg) {
         if (err && self.options.ignoreMissing) {
             if (-- self.pending === 0) self.push(null);
+            self.emit('missing', id, parent);
             return cb(null, undefined);
         }
         if (err) return self.emit('error', err);
