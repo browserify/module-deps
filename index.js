@@ -8,7 +8,7 @@ var detective = require('detective');
 var through = require('through2');
 var concat = require('concat-stream');
 var parents = require('parents');
-var combine = require('stream-combiner');
+var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
 var copy = require('shallow-copy');
 
