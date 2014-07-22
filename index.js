@@ -241,6 +241,9 @@ Deps.prototype.walk = function (id, parent, cb) {
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
+        if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
+            return cb(null, undefined);
+        }
         if (err && rec.source) {
             file = rec.file;
             
