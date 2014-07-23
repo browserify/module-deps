@@ -52,7 +52,7 @@ usage: module-deps [files]
 var mdeps = require('module-deps')
 ```
 
-## var d = mdeps(files, opts={})
+## var d = mdeps(opts={})
 
 Return an object transform stream `d` that expects entry filenames or
 `{ id: ..., file: ... }` objects as input and produces objects for every
@@ -95,6 +95,13 @@ contents for browser fields, main entries, and transforms
 in `process.env.NODE_PATH`
 
 * `opts.ignoreMissing` - ignore files that failed to resolve
+
+# input objects
+
+Input objects should be string filenames or objects with these parameters:
+
+`row.file` - filename
+`row.expose` - name to be exposed as
 
 # events
 
