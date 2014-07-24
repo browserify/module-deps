@@ -102,6 +102,7 @@ Input objects should be string filenames or objects with these parameters:
 
 `row.file` - filename
 `row.expose` - name to be exposed as
+`row.noparse` when true, don't parse the file contents for dependencies
 
 # events
 
