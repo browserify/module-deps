@@ -175,6 +175,8 @@ Deps.prototype.getTransforms = function (file, pkg) {
     function done () {
         var middle = combine.apply(null, streams);
         middle.on('error', function (err) {
+            err.message += ' while parsing file: ' + file;
+            if (!err.filename) err.filename = file;
             self.emit('error', err);
         });
         input.pipe(middle).pipe(output);
