@@ -290,7 +290,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         }));
         
         function fromSource (src) {
-            var deps = self.parseDeps(file, src);
+            var deps = rec.noparse ? [] : self.parseDeps(file, src);
             if (deps) fromDeps(file, src, pkg, deps);
         }
     });

@@ -28,7 +28,8 @@ test('noParse row', function (t) {
                 file: files.main,
                 source: sources.main,
                 entry: true,
-                noparse: true
+                noparse: true,
+                deps: {}
             }
         ].sort(cmp));
     });
