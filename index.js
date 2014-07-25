@@ -139,7 +139,7 @@ Deps.prototype.readFile = function (file, id, pkg) {
     var rs = fs.createReadStream(file);
     rs.on('error', function (err) { tr.emit('error', err) });
     this.emit('file', file, id);
-    return rs.pipe(this.getTransforms(file, pkg));
+    return rs;
 };
 
 Deps.prototype.getTransforms = function (file, pkg) {
@@ -286,9 +286,16 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
-        self.readFile(file, id, pkg).pipe(concat(function (body) {
-            fromSource(body.toString('utf8'));
-        }));
+        self.readFile(file, id, pkg)
+            .pipe(
+                has(parent.modules, id)
+                ? through()
+                : self.getTransforms(file, pkg)
+            )
+            .pipe(concat(function (body) {
+                fromSource(body.toString('utf8'));
+            }))
+        ;
         
         function fromSource (src) {
             var deps = rec.noparse ? [] : self.parseDeps(file, src);
@@ -448,7 +455,7 @@ function xhas (obj) {
 }
 
 function has (obj, key) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
+    return obj && Object.prototype.hasOwnProperty.call(obj, key);
 }
 
 function wrapTransform (tr) {
