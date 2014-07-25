@@ -16,7 +16,7 @@
     "minimist": "~0.2.0",
     "parents": "^1.0.0",
     "readable-stream": "^1.0.27-1",
-    "resolve": "~0.6.3",
+    "resolve": "~0.7.2",
     "shallow-copy": "0.0.1",
     "stream-combiner2": "~1.0.0",
     "subarg": "0.0.1",

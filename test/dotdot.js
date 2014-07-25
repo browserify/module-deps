@@ -4,8 +4,8 @@ var through = require('through2');
 
 test(function (t) {
     var expected = [
-        __dirname + '/dotdot/abc/index.js',
-        __dirname + '/dotdot/index.js'
+        __dirname + '/dotdot/index.js',
+        __dirname + '/dotdot/abc/index.js'
     ];
     t.plan(expected.length);
     
