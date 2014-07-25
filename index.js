@@ -246,6 +246,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (rec.expose) {
             self.options.modules[rec.expose] = file;
         }
+        if (pkg) self.emit('package', pkg);
         
         if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
             if (--self.pending === 0) self.push(null);
