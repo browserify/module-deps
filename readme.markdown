@@ -119,6 +119,11 @@ Every time a file is read, this event fires with the file path.
 
 When `opts.ignoreMissing` is enabled, this event fires for each missing package.
 
+## d.on('package', function (pkg) {})
+
+Every time a package is read, this event fires. The directory name of the
+package is available in `pkg.__dirname`.
+
 # transforms
 
 module-deps can be configured to run source transformations on files before
