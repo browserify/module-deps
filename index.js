@@ -142,9 +142,13 @@ Deps.prototype.readFile = function (file, id, pkg) {
     return rs;
 };
 
-Deps.prototype.getTransforms = function (file, pkg) {
+Deps.prototype.getTransforms = function (file, pkg, opts) {
+    if (!opts) opts = {};
     var self = this;
-    var isTopLevel = this.entries.some(function (main) {
+    
+    var isTopLevel;
+    if (opts.builtin) isTopLevel = false;
+    else isTopLevel = this.entries.some(function (main) {
         var m = path.relative(path.dirname(main), file);
         return m.split(/[\\\/]/).indexOf('node_modules') < 0;
     });
@@ -287,11 +291,9 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
         
         self.readFile(file, id, pkg)
-            .pipe(
-                has(parent.modules, id)
-                ? through()
-                : self.getTransforms(file, pkg)
-            )
+            .pipe(self.getTransforms(file, pkg, {
+                builtin: has(parent.modules, id)
+            }))
             .pipe(concat(function (body) {
                 fromSource(body.toString('utf8'));
             }))
