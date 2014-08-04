@@ -59,7 +59,7 @@ Deps.prototype._transform = function (row, enc, next) {
     if (row.entry !== false) self.entries.push(row.file);
     
     self.lookupPackage(row.file, function (err, pkg) {
-        if (err && this.options.ignoreMissing) {
+        if (err && self.options.ignoreMissing) {
             self.emit('missing', row.file, self.top);
             self.pending --;
             return next();
