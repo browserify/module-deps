@@ -130,6 +130,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
 };
 
 Deps.prototype.readFile = function (file, id, pkg) {
+    var self = this;
     var tr = through();
     if (this.cache && this.cache[file]) {
         tr.push(this.cache[file].source);
@@ -137,7 +138,7 @@ Deps.prototype.readFile = function (file, id, pkg) {
         return tr;
     }
     var rs = fs.createReadStream(file);
-    rs.on('error', function (err) { tr.emit('error', err) });
+    rs.on('error', function (err) { self.emit('error', err) });
     this.emit('file', file, id);
     return rs;
 };
