@@ -270,7 +270,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (err && self.options.ignoreMissing) {
             if (--self.pending === 0) self.push(null);
             self.emit('missing', id, parent);
-            return cb(null, undefined);
+            return cb && cb(null, undefined);
         }
         if (err) return self.emit('error', err);
         if (self.visited[file]) {
