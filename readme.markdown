@@ -83,8 +83,13 @@ been resolved. Return false to skip this file.
 the values. `opts.packageFilter(pkg, dir)` should return the new `pkg` object to
 use.
 
-* `opts.noParse` - an array of absolute paths to not parse for dependencies. Use
-this for large dependencies like jquery or threejs which take forever to parse.
+* `opts.noParse` - an array of filters for files that should not be
+parsed for dependencies. A filter may be an absolute path, the name of
+a module, or a module path (as used by `require()`). A filter may also
+be a function that accepts an absolute file name and returns truthy if
+the file should not be parsed.  Use this for large dependencies like
+jquery or threejs which take forever to parse or files that define
+their own `require` mechanism.
 
 * `opts.cache` - an object mapping filenames to file objects to skip costly io
 

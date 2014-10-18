@@ -347,13 +347,8 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
-    if (this.options.noParse === true) return [];
     if (/\.json$/.test(file)) return [];
-    
-    if (Array.isArray(this.options.noParse)
-    && this.options.noParse.indexOf(file) >= 0) {
-        return [];
-    }
+    if (this.noParse(file)) return [];
     
     try { var deps = detective(src) }
     catch (ex) {
@@ -364,6 +359,27 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         return;
     }
     return deps;
+};
+
+Deps.prototype.noParse = function (file) {
+    if (this.options.noParse === true) return true;
+
+    var no = [].concat(this.options.noParse).filter(Boolean);
+    var modulePath = file.split('/node_modules/').pop();
+    var moduleName = modulePath.split('/')[0];
+
+    for (var i = 0; i < no.length; i++) {
+        if (typeof no[i] === 'function' && no[i](file)) {
+            return true;
+        }
+        else if (no[i] === file || path.resolve(no[i]) === file) {
+            return true;
+        }
+        else if (no[i] === moduleName || no[i] === modulePath) {
+            return true;
+        }
+    }
+    return false;
 };
 
 Deps.prototype.lookupPackage = function (file, cb) {
