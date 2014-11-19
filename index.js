@@ -43,7 +43,8 @@ function Deps (opts) {
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
-    this.options = opts;
+    this.options = copy(opts || {});
+    if (!this.options.modules) this.options.modules = {};
     this.pending = 0;
     
     var topfile = path.join(this.basedir, '__fake.js');
