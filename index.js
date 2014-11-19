@@ -154,6 +154,10 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
         var m = path.relative(path.dirname(main), file);
         return m.split(/[\\\/]/).indexOf('node_modules') < 0;
     });
+    if (!isTopLevel) {
+        var m = path.relative(this.basedir, file);
+        isTopLevel = m.split(/[\\\/]/).indexOf('node_modules') < 0;
+    }
     
     var transforms = [].concat(isTopLevel ? this.transforms : [])
         .concat(getTransforms(pkg, {
