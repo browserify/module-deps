@@ -86,7 +86,7 @@ Deps.prototype._flush = function () {
     var self = this;
     var files = {};
     self._input.forEach(function (r) {
-        var w = r.row, f = files[w.file];
+        var w = r.row, f = files[w.file || w.id];
         if (f) {
             f.row.entry = f.row.entry || w.entry;
             var ex = f.row.expose || w.expose;
@@ -95,7 +95,7 @@ Deps.prototype._flush = function () {
                 f.row.id = w.id;
             }
         }
-        else files[w.file] = r;
+        else files[w.file || w.id] = r;
     });
     
     Object.keys(files).forEach(function (key) {
