@@ -33,6 +33,7 @@ function Deps (opts) {
     this.visited = {};
     this.walking = {};
     this.entries = [];
+    this._input = [];
     
     this.paths = opts.paths || process.env.NODE_PATH;
     if (typeof this.paths === 'string') {
@@ -53,10 +54,19 @@ function Deps (opts) {
 
 Deps.prototype._transform = function (row, enc, next) {
     var self = this;
-    self.pending ++;
     if (typeof row === 'string') {
         row = { file: row };
     }
+    if (row.transform && row.global) {
+        this.globalTransforms.push([ row.transform, row.options ]);
+        return next();
+    }
+    else if (row.transform) {
+        this.transforms.push([ row.transform, row.options ]);
+        return next();
+    }
+    
+    self.pending ++;
     if (row.entry !== false) self.entries.push(row.file);
     
     self.lookupPackage(row.file, function (err, pkg) {
@@ -67,18 +77,18 @@ Deps.prototype._transform = function (row, enc, next) {
         }
         if (err) return self.emit('error', err)
         self.pending --;
-        start(pkg)
+        self._input.push({ row: row, pkg: pkg });
+        next();
     });
-    next();
-    
-    function start (pkg) {
-        if (!pkg) pkg = {};
-        if (!pkg.__dirname) pkg.__dirname = path.dirname(row.file);
-        self.walk(row, self.top);
-    }
 };
 
 Deps.prototype._flush = function () {
+    var self = this;
+    self._input.forEach(function (r) {
+        var pkg = r.pkg || {};
+        if (!pkg.__dirname) pkg.__dirname = path.dirname(r.row.file);
+        self.walk(r.row, self.top);
+    });
     if (this.pending === 0) this.push(null);
     this._ended = true;
 };
@@ -346,7 +356,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             self.push(rec);
             
             if (cb) cb(null, file);
-            if (-- self.pending === 0 && self._ended) self.push(null);
+            if (-- self.pending === 0) self.push(null);
         }
     }
 };
