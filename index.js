@@ -84,7 +84,22 @@ Deps.prototype._transform = function (row, enc, next) {
 
 Deps.prototype._flush = function () {
     var self = this;
+    var files = {};
     self._input.forEach(function (r) {
+        var w = r.row, f = files[w.file];
+        if (f) {
+            f.row.entry = f.row.entry || w.entry;
+            var ex = f.row.expose || w.expose;
+            f.row.expose = ex;
+            if (ex && f.row.file === f.row.id && w.file !== w.id) {
+                f.row.id = w.id;
+            }
+        }
+        else files[w.file] = r;
+    });
+    
+    Object.keys(files).forEach(function (key) {
+        var r = files[key];
         var pkg = r.pkg || {};
         if (!pkg.__dirname) pkg.__dirname = path.dirname(r.row.file);
         self.walk(r.row, self.top);
