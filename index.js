@@ -385,6 +385,7 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
+    var self = this;
     if (this.options.noParse === true) return [];
     if (/\.json$/.test(file)) return [];
     
