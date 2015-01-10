@@ -47,6 +47,7 @@ function Deps (opts) {
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
+    this.detective = opts.detect || detective;
     this.options = copy(opts || {});
     if (!this.options.modules) this.options.modules = {};
     this.pending = 0;
@@ -392,7 +393,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         return [];
     }
     
-    try { var deps = detective(src) }
+    try { var deps = self.detective(src) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         this.emit('error', new Error(
