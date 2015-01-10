@@ -58,6 +58,7 @@ function Deps (opts) {
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
+    this.detective = opts.detect || detective;
     this.options = xtend(opts);
     if (!this.options.modules) this.options.modules = {};
 
@@ -493,6 +494,7 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
+    var self = this;
     if (this.options.noParse === true) return [];
     if (/\.json$/.test(file)) return [];
     
@@ -501,7 +503,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         return [];
     }
     
-    try { var deps = detective(src) }
+    try { var deps = self.detective(src) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         throw new Error(

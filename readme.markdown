@@ -72,6 +72,10 @@ package.json at all.
 `opts.resolve(id, parent, cb)` signature that
 [browser-resolve](https://github.com/shtylman/node-browser-resolve) has
 
+* `opts.detect` - a custom dependency detection function. `opts.detect(source)`
+should return an array of dependency module names. By default
+[detective](https://github.com/browserify/detective) is used.
+
 * `opts.filter` - a function (id) to skip resolution of some module `id` strings.
 If defined, `opts.filter(id)` should return truthy for all the ids to include
 and falsey for all the ids to skip.
