@@ -290,7 +290,11 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (rec.expose) {
-            self.options.modules[rec.expose] = file;
+            // Set options.expose to make the resolved pathname available to the
+            // caller. They may or may not have requested it, but it's harmless
+            // to set this if they didn't.
+            self.options.expose[rec.expose] =
+                self.options.modules[rec.expose] = file;
         }
         if (pkg) self.emit('package', pkg);
         
