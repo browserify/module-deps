@@ -49,6 +49,10 @@ function Deps (opts) {
     this.resolver = opts.resolve || browserResolve;
     this.options = copy(opts || {});
     if (!this.options.modules) this.options.modules = {};
+
+    // If the caller passes options.expose, store resolved pathnames for exposed
+    // modules in it. If not, set it anyway so it's defined later.
+    if (!this.options.expose) this.options.expose = {};
     this.pending = 0;
     
     var topfile = path.join(this.basedir, '__fake.js');
