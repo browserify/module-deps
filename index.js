@@ -48,6 +48,10 @@ function Deps (opts) {
     this.resolver = opts.resolve || browserResolve;
     this.options = copy(opts || {});
     if (!this.options.modules) this.options.modules = {};
+
+    // If the caller passes options.expose, store resolved pathnames for exposed
+    // modules in it. If not, set it anyway so it's defined later.
+    if (!this.options.expose) this.options.expose = {};
     this.pending = 0;
     
     var topfile = path.join(this.basedir, '__fake.js');
@@ -285,7 +289,11 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     self.resolve(id, parent, function (err, file, pkg) {
         if (rec.expose) {
-            self.options.modules[rec.expose] = file;
+            // Set options.expose to make the resolved pathname available to the
+            // caller. They may or may not have requested it, but it's harmless
+            // to set this if they didn't.
+            self.options.expose[rec.expose] =
+                self.options.modules[rec.expose] = file;
         }
         if (pkg) self.emit('package', pkg);
         
