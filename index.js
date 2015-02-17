@@ -56,7 +56,12 @@ function Deps (opts) {
     this.pending = 0;
     
     var topfile = path.join(this.basedir, '__fake.js');
-    this.top = { id: topfile, filename: topfile, paths: this.paths };
+    this.top = {
+        id: topfile,
+        filename: topfile,
+        paths: this.paths,
+        basedir: this.basedir
+    };
 }
 
 Deps.prototype._transform = function (row, enc, next) {
