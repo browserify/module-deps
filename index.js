@@ -30,6 +30,7 @@ function Deps (opts) {
     this.pkgCache = opts.packageCache || {};
     this.pkgFileCache = {};
     this.pkgFileCachePending = {};
+    this._emittedPkg = {};
     this.visited = {};
     this.walking = {};
     this.entries = [];
@@ -139,7 +140,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
     
     var pkgdir;
     parent.packageFilter = function (p, x) {
-        pkgdir = x;
+        pkgdir = path.dirname(x);
         if (opts.packageFilter) return opts.packageFilter(p, x);
         else return p;
     };
@@ -304,7 +305,10 @@ Deps.prototype.walk = function (id, parent, cb) {
             self.options.expose[rec.expose] =
                 self.options.modules[rec.expose] = file;
         }
-        if (pkg) self.emit('package', pkg);
+        if (pkg && !self._emittedPkg[pkg.__dirname]) {
+            self._emittedPkg[pkg.__dirname] = true;
+            self.emit('package', pkg);
+        }
         
         if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
             if (--self.pending === 0) self.push(null);
