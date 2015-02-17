@@ -10,6 +10,7 @@ var parents = require('parents');
 var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
 var copy = require('shallow-copy');
+var xtend = require('xtend');
 
 var inherits = require('inherits');
 var Transform = require('readable-stream').Transform;
@@ -107,8 +108,11 @@ Deps.prototype._flush = function () {
     Object.keys(files).forEach(function (key) {
         var r = files[key];
         var pkg = r.pkg || {};
-        if (!pkg.__dirname) pkg.__dirname = path.dirname(r.row.file);
-        self.walk(r.row, self.top);
+        var dir = path.dirname(r.row.file);
+        if (!pkg.__dirname) pkg.__dirname = dir;
+        self.walk(r.row, xtend(self.top, {
+            filename: path.join(dir, '_fake.js')
+        }));
     });
     if (this.pending === 0) this.push(null);
     this._ended = true;
