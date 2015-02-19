@@ -20,7 +20,8 @@
     "shallow-copy": "0.0.1",
     "stream-combiner2": "~1.0.0",
     "subarg": "0.0.1",
-    "through2": "~0.4.1"
+    "through2": "~0.4.1",
+    "xtend": "^4.0.0"
   },
   "devDependencies": {
     "through": "~2.3.4",
