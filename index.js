@@ -36,14 +36,15 @@ function Deps (opts) {
     this.entries = [];
     this._input = [];
     
-    this.paths = opts.paths || process.env.NODE_PATH;
+    this.paths = opts.paths || process.env.NODE_PATH || '';
     if (typeof this.paths === 'string') {
-        this.paths = process.env.NODE_PATH.split(':');
+        this.paths = this.paths.split(path.delimiter);
     }
-    if (!this.paths) this.paths = [];
-    this.paths = this.paths.map(function (p) {
-        return path.resolve(self.basedir, p);
-    });
+    this.paths = this.paths
+        .filter(Boolean)
+        .map(function (p) {
+            return path.resolve(self.basedir, p);
+        });
     
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
