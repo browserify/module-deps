@@ -25,6 +25,7 @@ test('undef file', function (t) {
         t.same(rows.sort(cmp), [
             {
                 id: files.main,
+                file: files.main,
                 source: sources.main,
                 entry: true,
                 deps: { './foo': files.foo }

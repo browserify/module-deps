@@ -11,6 +11,7 @@ var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
 var copy = require('shallow-copy');
 var xtend = require('xtend');
+var defined = require('defined');
 
 var inherits = require('inherits');
 var Transform = require('readable-stream').Transform;
@@ -81,7 +82,11 @@ Deps.prototype._transform = function (row, enc, next) {
     }
     
     self.pending ++;
-    if (row.entry !== false) self.entries.push(path.resolve(row.basedir, row.file));
+    var basedir = defined(row.basedir, self.basedir);
+    
+    if (row.entry !== false) {
+        self.entries.push(path.resolve(basedir, row.file || row.id));
+    }
     
     self.lookupPackage(row.file, function (err, pkg) {
         if (err && self.options.ignoreMissing) {

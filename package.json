@@ -10,6 +10,7 @@
     "JSONStream": "~0.7.1",
     "browser-resolve": "^1.7.0",
     "concat-stream": "~1.4.5",
+    "defined": "0.0.0",
     "detective": "^4.0.0",
     "duplexer2": "0.0.2",
     "inherits": "^2.0.1",
