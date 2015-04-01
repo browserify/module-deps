@@ -81,7 +81,7 @@ Deps.prototype._transform = function (row, enc, next) {
     }
     
     self.pending ++;
-    if (row.entry !== false) self.entries.push(row.file);
+    if (row.entry !== false) self.entries.push(path.resolve(row.basedir, row.file));
     
     self.lookupPackage(row.file, function (err, pkg) {
         if (err && self.options.ignoreMissing) {
