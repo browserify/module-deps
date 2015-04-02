@@ -39,7 +39,8 @@ function Deps (opts) {
     
     this.paths = opts.paths || process.env.NODE_PATH || '';
     if (typeof this.paths === 'string') {
-        this.paths = this.paths.split(path.delimiter);
+        var delimiter = path.delimiter || (process.platform === 'win32' ? ';' : ':');
+        this.paths = this.paths.split(delimiter);
     }
     this.paths = this.paths
         .filter(Boolean)
