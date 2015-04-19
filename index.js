@@ -58,6 +58,7 @@ function Deps (opts) {
     // modules in it. If not, set it anyway so it's defined later.
     if (!this.options.expose) this.options.expose = {};
     this.pending = 0;
+    this.inputPending = 0;
     
     var topfile = path.join(this.basedir, '__fake.js');
     this.top = {
@@ -298,10 +299,13 @@ Deps.prototype.walk = function (id, parent, cb) {
     this.pending ++;
     
     var rec = {};
+    var input;
     if (typeof id === 'object') {
         rec = copy(id);
         if (rec.entry === false) delete rec.entry;
         id = rec.file || rec.id;
+        input = true;
+        this.inputPending ++;
     }
     
     self.resolve(id, parent, function (err, file, pkg) {
@@ -319,6 +323,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         
         if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
             if (--self.pending === 0) self.push(null);
+            if (input) --self.inputPending;
             return cb(null, undefined);
         }
         if (err && rec.source) {
@@ -333,12 +338,14 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         if (err && self.options.ignoreMissing) {
             if (--self.pending === 0) self.push(null);
+            if (input) --self.inputPending;
             self.emit('missing', id, parent);
             return cb && cb(null, undefined);
         }
         if (err) return self.emit('error', err);
         if (self.visited[file]) {
             if (-- self.pending === 0) self.push(null);
+            if (input) --self.inputPending;
             return cb && cb(null, file);
         }
         self.visited[file] = true;
@@ -380,18 +387,23 @@ Deps.prototype.walk = function (id, parent, cb) {
         };
         var resolved = {};
         
-        deps.forEach(function (id) {
-            if (opts.filter && !opts.filter(id)) {
-                resolved[id] = false;
-                if (--p === 0) done();
-                return;
-            }
-            self.walk(id, current, function (err, r) {
-                resolved[id] = r;
-                if (--p === 0) done();
+        if (input) --self.inputPending;
+        
+        (function resolve () {
+            if (self.inputPending > 0) return setTimeout(resolve);
+            deps.forEach(function (id) {
+                if (opts.filter && !opts.filter(id)) {
+                    resolved[id] = false;
+                    if (--p === 0) done();
+                    return;
+                }
+                self.walk(id, current, function (err, r) {
+                    resolved[id] = r;
+                    if (--p === 0) done();
+                });
             });
-        });
-        if (deps.length === 0) done();
+            if (deps.length === 0) done();
+        })();
         
         function done () {
             if (!rec.id) rec.id = file;
