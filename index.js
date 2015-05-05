@@ -379,12 +379,6 @@ Deps.prototype.walk = function (id, parent, cb) {
     
     function fromDeps (file, src, pkg, deps) {
         var p = deps.length;
-        var current = {
-            id: file,
-            filename: file,
-            paths: self.paths,
-            package: pkg
-        };
         var resolved = {};
         
         if (input) --self.inputPending;
@@ -397,6 +391,12 @@ Deps.prototype.walk = function (id, parent, cb) {
                     if (--p === 0) done();
                     return;
                 }
+                var current = {
+                    id: file,
+                    filename: file,
+                    paths: self.paths,
+                    package: pkg
+                };
                 self.walk(id, current, function (err, r) {
                     resolved[id] = r;
                     if (--p === 0) done();
