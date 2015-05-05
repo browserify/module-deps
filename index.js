@@ -332,7 +332,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             var ts = self.getTransforms(file, pkg);
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
-                fromSource(rec.source);
+                fromSource(file, rec.source, pkg);
             }));
             return ts.end(rec.source);
         }
@@ -354,7 +354,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             var ts = self.getTransforms(file, pkg);
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
-                fromSource(rec.source);
+                fromSource(file, rec.source, pkg);
             }));
             return ts.end(rec.source);
         }
@@ -367,15 +367,15 @@ Deps.prototype.walk = function (id, parent, cb) {
                 builtin: has(parent.modules, id)
             }))
             .pipe(concat(function (body) {
-                fromSource(body.toString('utf8'));
+                fromSource(file, body.toString('utf8'), pkg);
             }))
         ;
-        
-        function fromSource (src) {
-            var deps = rec.noparse ? [] : self.parseDeps(file, src);
-            if (deps) fromDeps(file, src, pkg, deps);
-        }
     });
+
+    function fromSource (file, src, pkg) {
+        var deps = rec.noparse ? [] : self.parseDeps(file, src);
+        if (deps) fromDeps(file, src, pkg, deps);
+    }
     
     function fromDeps (file, src, pkg, deps) {
         var p = deps.length;
