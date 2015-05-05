@@ -146,11 +146,12 @@ Deps.prototype.resolve = function (id, parent, cb) {
         });
     }
     
-    var pkgdir;
     parent.packageFilter = function (p, x) {
-        pkgdir = path.dirname(x);
-        if (opts.packageFilter) return opts.packageFilter(p, x);
-        else return p;
+        var pkgdir = path.dirname(x);
+        if (opts.packageFilter) p = opts.packageFilter(p, x);
+        p.__dirname = pkgdir;
+
+        return p;
     };
     
     if (opts.extensions) parent.extensions = opts.extensions;
@@ -163,7 +164,6 @@ Deps.prototype.resolve = function (id, parent, cb) {
             + parent.filename
         ));
         
-        if (pkg && pkgdir) pkg.__dirname = pkgdir;
         if (!pkg || !pkg.__dirname) {
             self.lookupPackage(file, function (err, p) {
                 if (err) return cb(err);
