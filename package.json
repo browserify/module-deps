@@ -26,7 +26,7 @@
   "devDependencies": {
     "through": "~2.3.4",
     "tape": "~2.12.3",
-    "browser-pack": "~2.0.1"
+    "browser-pack": "^4.0.3"
   },
   "scripts": {
     "test": "tape test/*.js"

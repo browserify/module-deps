@@ -24,7 +24,7 @@ test('transform write', function (t) {
     p.pipe(JSONStream.stringify()).pipe(pack);
     
     pack.pipe(concat(function (buf) {
-        var src = buf.toString('utf');
+        var src = buf.toString('utf8');
         Function('console', src)({ log: function (msg) {
             t.equal(msg, 'WORLD WIDE WOW');
         } });
