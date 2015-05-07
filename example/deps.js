@@ -1,5 +1,5 @@
 var mdeps = require('../');
-var JSONStream = require('JSONStream');
+var JSONStream = require('jsonstream');
 
 var md = mdeps();
 md.pipe(JSONStream.stringify()).pipe(process.stdout);
