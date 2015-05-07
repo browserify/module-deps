@@ -1,6 +1,6 @@
 var mdeps = require('../');
 var test = require('tape');
-var JSONStream = require('JSONStream');
+var JSONStream = require('jsonstream');
 var packer = require('browser-pack');
 var through = require('through');
 var path = require('path');

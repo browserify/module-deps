@@ -9,7 +9,7 @@ var argv = subarg(process.argv.slice(2), {
 });
 if (argv.help) return usage(0);
 
-var JSONStream = require('JSONStream');
+var JSONStream = require('jsonstream');
 
 var files = argv._.map(function (file) {
     if (file === '-') return process.stdin;
