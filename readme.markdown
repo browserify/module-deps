@@ -9,7 +9,7 @@ walk the dependency graph to generate json output that can be fed into
 
 ``` js
 var mdeps = require('module-deps');
-var JSONStream = require('jsonstream');
+var JSONStream = require('JSONStream');
 
 var md = mdeps();
 md.pipe(JSONStream.stringify()).pipe(process.stdout);

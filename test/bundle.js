@@ -1,6 +1,6 @@
 var parser = require('../');
 var test = require('tape');
-var JSONStream = require('jsonstream');
+var JSONStream = require('JSONStream');
 var packer = require('browser-pack');
 var path = require('path');
 
