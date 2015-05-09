@@ -373,8 +373,10 @@ Deps.prototype.walk = function (id, parent, cb) {
     });
 
     function fromSource (file, src, pkg) {
-        var deps = rec.noparse ? [] : self.parseDeps(file, src);
-        if (deps) fromDeps(file, src, pkg, deps);
+        var deps;
+        if (opts.parseFilter && !opts.parseFilter(id, file, pkg)) deps = [];
+        else deps = self.parseDeps(file, src);
+        fromDeps(file, src, pkg, deps);
     }
     
     function fromDeps (file, src, pkg, deps) {
@@ -423,13 +425,7 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
-    if (this.options.noParse === true) return [];
     if (/\.json$/.test(file)) return [];
-    
-    if (Array.isArray(this.options.noParse)
-    && this.options.noParse.indexOf(file) >= 0) {
-        return [];
-    }
     
     try { var deps = detective(src) }
     catch (ex) {
