@@ -62,13 +62,13 @@ test('preserves expose and entry with partial cache', function(t) {
                 id: files.bar,
                 file: files.bar,
                 source: sources.bar,
-                deps: {xyz: files.xyz}
+                deps: {xyz: 'xyz'}
             },
             {
                 file: files.foo,
                 id: files.foo,
                 source: sources.foo,
-                deps: {'./lib/abc': files.abc}
+                deps: {'./lib/abc': 'abc'}
             },
             {
                 id: 'abc',
@@ -84,8 +84,8 @@ test('preserves expose and entry with partial cache', function(t) {
                 source: sources.main,
                 deps: {
                     './bar': files.bar,
-                    abc: files.abc,
-                    xyz: files.xyz
+                    abc: 'abc',
+                    xyz: 'xyz'
                 },
                 entry: true
             },
