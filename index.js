@@ -9,7 +9,6 @@ var concat = require('concat-stream');
 var parents = require('parents');
 var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
-var copy = require('shallow-copy');
 var xtend = require('xtend');
 var defined = require('defined');
 
@@ -51,7 +50,7 @@ function Deps (opts) {
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
-    this.options = copy(opts || {});
+    this.options = xtend(opts);
     if (!this.options.modules) this.options.modules = {};
 
     // If the caller passes options.expose, store resolved pathnames for exposed
@@ -301,7 +300,7 @@ Deps.prototype.walk = function (id, parent, cb) {
     var rec = {};
     var input;
     if (typeof id === 'object') {
-        rec = copy(id);
+        rec = xtend(id);
         if (rec.entry === false) delete rec.entry;
         id = rec.file || rec.id;
         input = true;
