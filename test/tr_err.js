@@ -2,7 +2,7 @@ var mdeps = require('../');
 var test = require('tape');
 var JSONStream = require('JSONStream');
 var packer = require('browser-pack');
-var through = require('through');
+var through = require('through2');
 var path = require('path');
 
 test('transform', function (t) {
