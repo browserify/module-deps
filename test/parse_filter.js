@@ -14,9 +14,13 @@ var sources = Object.keys(files).reduce(function (acc, file) {
     return acc;
 }, {});
 
-test('noParse', function (t) {
+test('parse filter', function (t) {
     t.plan(1);
-    var p = parser({ noParse: [ files.foo ] });
+    var p = parser({
+        parseFilter: function (id, file, pkg) {
+            return file !== files.foo;
+        }
+    });
     p.end(files.main);
     var rows = [];
     

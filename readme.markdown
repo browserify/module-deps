@@ -76,15 +76,16 @@ package.json at all.
 If defined, `opts.filter(id)` should return truthy for all the ids to include
 and falsey for all the ids to skip.
 
+* `opts.parseFilter` - a function (id, file, pkg) to skip parsing for
+dependencies. Use this for large dependencies like jquery or threejs
+which take forever to parse.
+
 * `opts.postFilter` - a function (id, file, pkg) that gets called after `id` has
 been resolved. Return false to skip this file.
 
 * `opts.packageFilter` - transform the parsed package.json contents before using
 the values. `opts.packageFilter(pkg, dir)` should return the new `pkg` object to
 use.
-
-* `opts.noParse` - an array of absolute paths to not parse for dependencies. Use
-this for large dependencies like jquery or threejs which take forever to parse.
 
 * `opts.cache` - an object mapping filenames to file objects to skip costly io
 
@@ -102,7 +103,6 @@ Input objects should be string filenames or objects with these parameters:
 
 * `row.file` - filename
 * `row.expose` - name to be exposed as
-* `row.noparse` when true, don't parse the file contents for dependencies
 
 or objects can specify transforms:
 
