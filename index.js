@@ -136,7 +136,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
     var opts = self.options;
     
     if (xhas(self.cache, parent.id, 'deps', id)
-    && self.cache[parent.id].deps) {
+    && self.cache[parent.id].deps[id]) {
         var file = self.cache[parent.id].deps[id];
         var pkg = self.pkgCache[file];
         if (pkg) return cb(null, file, pkg);
