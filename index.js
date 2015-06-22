@@ -272,7 +272,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             }
             
             if (!res) return cb(new Error(
-                'cannot find transform module ' + tr
+                'cannot find transform module ' + id
                 + ' while transforming ' + file
             ));
             
