@@ -27,6 +27,7 @@ function Deps (opts) {
     
     this.basedir = opts.basedir || process.cwd();
     this.cache = opts.cache;
+    this.fileCache = opts.fileCache;
     this.pkgCache = opts.packageCache || {};
     this.pkgFileCache = {};
     this.pkgFileCachePending = {};
@@ -181,8 +182,10 @@ Deps.prototype.resolve = function (id, parent, cb) {
 Deps.prototype.readFile = function (file, id, pkg) {
     var self = this;
     var tr = through();
-    if (this.cache && this.cache[file]) {
-        tr.push(this.cache[file].source);
+
+    var inputSource = this.fileCache && this.fileCache[file];
+    if (inputSource) {
+        tr.push(inputSource);
         tr.push(null);
         return tr;
     }
