@@ -156,8 +156,19 @@ Deps.prototype.resolve = function (id, parent, cb) {
     
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
+
+    var resolver = function(id, parent, callback) {
+        var file = path.resolve(path.dirname(parent.id), id);
+        if (! /\.js$/.test(file))
+            file += '.js';
+
+        if (self.fileCache && self.fileCache[file])
+            callback(null, file);
+        else
+            self.resolver(id, parent, callback);
+    };
     
-    self.resolver(id, parent, function onresolve (err, file, pkg) {
+    resolver(id, parent, function onresolve (err, file, pkg) {
         if (err) return cb(err);
         if (!file) return cb(new Error(
             'module not found: "' + id + '" from file '

@@ -4,18 +4,18 @@ var path = require('path');
 var through = require('through2');
 
 var files = {
-    foo: path.join(__dirname, '/files/foo.js'),
-    bar: path.join(__dirname, '/files/bar.js')
+    fop: path.join(__dirname, '/files/fop.js'),
+    bat: path.join(__dirname, '/files/bat.js')
 };
 
 var sources = {
-    foo: 'require("./bar"); var tongs;',
-    bar: 'notreal tongs'
+    fop: 'require("./bat"); var tongs;',
+    bat: 'notreal tongs'
 };
 
 var fileCache = {};
-fileCache[files.foo] = sources.foo;
-fileCache[files.bar] = sources.bar;
+fileCache[files.fop] = sources.fop;
+fileCache[files.bat] = sources.bat;
 
 var specialReplace = function(input) {
     return input.replace(/tongs/g, 'tangs');
@@ -33,22 +33,22 @@ test('uses file cache', function (t) {
         },
         transformKey: [ 'browserify', 'transform' ]
     });
-    p.end({ id: 'foo', file: files.foo, entry: false });
+    p.end({ id: 'fop', file: files.fop, entry: false });
 
     var rows = [];
     p.on('data', function (row) { rows.push(row) });
     p.on('end', function () {
         t.same(rows.sort(cmp), [
             {
-                id: 'foo',
-                file: files.foo,
-                source: specialReplace(sources.foo),
-                deps: { './bar': files.bar }
+                id: 'fop',
+                file: files.fop,
+                source: specialReplace(sources.fop),
+                deps: { './bat': files.bat }
             },
             {
-                id: files.bar,
-                file: files.bar,
-                source: specialReplace(sources.bar),
+                id: files.bat,
+                file: files.bat,
+                source: specialReplace(sources.bat),
                 deps: {}
             }
         ].sort(cmp));
