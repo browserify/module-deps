@@ -27,6 +27,7 @@ function Deps (opts) {
     
     this.basedir = opts.basedir || process.cwd();
     this.cache = opts.cache;
+    this.fileCache = opts.fileCache;
     this.pkgCache = opts.packageCache || {};
     this.pkgFileCache = {};
     this.pkgFileCachePending = {};
@@ -155,8 +156,19 @@ Deps.prototype.resolve = function (id, parent, cb) {
     
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
+
+    var resolver = function(id, parent, callback) {
+        var file = path.resolve(path.dirname(parent.id), id);
+        if (! /\.js$/.test(file))
+            file += '.js';
+
+        if (self.fileCache && self.fileCache[file])
+            callback(null, file);
+        else
+            self.resolver(id, parent, callback);
+    };
     
-    self.resolver(id, parent, function onresolve (err, file, pkg) {
+    resolver(id, parent, function onresolve (err, file, pkg) {
         if (err) return cb(err);
         if (!file) return cb(new Error(
             'module not found: "' + id + '" from file '
@@ -181,8 +193,10 @@ Deps.prototype.resolve = function (id, parent, cb) {
 Deps.prototype.readFile = function (file, id, pkg) {
     var self = this;
     var tr = through();
-    if (this.cache && this.cache[file]) {
-        tr.push(this.cache[file].source);
+
+    var inputSource = this.fileCache && this.fileCache[file];
+    if (inputSource) {
+        tr.push(inputSource);
         tr.push(null);
         return tr;
     }
