@@ -14,6 +14,7 @@
     "detective": "^4.0.0",
     "duplexer2": "0.0.2",
     "inherits": "^2.0.1",
+    "is-stream": "^1.0.1",
     "parents": "^1.0.0",
     "readable-stream": "^1.1.13",
     "resolve": "^1.1.3",
