@@ -324,7 +324,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (opts.postFilter && !opts.postFilter(id, file, pkg)) {
             if (--self.pending === 0) self.push(null);
             if (input) --self.inputPending;
-            return cb(null, undefined);
+            return cb && cb(null, undefined);
         }
         if (err && rec.source) {
             file = rec.file;
