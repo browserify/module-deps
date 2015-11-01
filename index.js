@@ -34,7 +34,7 @@ function Deps (opts) {
     this._emittedPkg = {};
     this.visited = {};
     this.walking = {};
-    this.entries = [];
+    this.entries = {};
     this._input = [];
     
     this.paths = opts.paths || process.env.NODE_PATH || '';
@@ -87,7 +87,7 @@ Deps.prototype._transform = function (row, enc, next) {
     var basedir = defined(row.basedir, self.basedir);
     
     if (row.entry !== false) {
-        self.entries.push(path.resolve(basedir, row.file || row.id));
+        self.entries[path.resolve(basedir, row.file || row.id)] = row.id;
     }
     
     self.lookupPackage(row.file, function (err, pkg) {
@@ -201,7 +201,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     
     var isTopLevel;
     if (opts.builtin) isTopLevel = false;
-    else isTopLevel = this.entries.some(function (main) {
+    else isTopLevel = Object.keys(this.entries).some(function (main) {
         var m = path.relative(path.dirname(main), file);
         return m.split(/[\\\/]/).indexOf('node_modules') < 0;
     });
@@ -400,7 +400,11 @@ Deps.prototype.walk = function (id, parent, cb) {
                     package: pkg
                 };
                 self.walk(id, current, function (err, r) {
-                    resolved[id] = r;
+                    if (typeof self.entries[r] !== 'undefined') {
+                        resolved[id] = self.entries[r];
+                    } else {
+                        resolved[id] = r;
+                    }
                     if (--p === 0) done();
                 });
             });
@@ -413,7 +417,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.deps) rec.deps = resolved;
             if (!rec.file) rec.file = file;
             
-            if (self.entries.indexOf(file) >= 0) {
+            if (self.entries.hasOwnProperty(file)) {
                 rec.entry = true;
             }
             self.push(rec);
