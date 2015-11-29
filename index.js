@@ -311,6 +311,10 @@ Deps.prototype.walk = function (id, parent, cb) {
     }
     
     self.resolve(id, parent, function (err, file, pkg, fakePath) {
+        // this is checked early because parent.modules is also modified
+        // by this function.
+        var builtin = has(parent.modules, id);
+
         if (rec.expose) {
             // Set options.expose to make the resolved pathname available to the
             // caller. They may or may not have requested it, but it's harmless
@@ -366,7 +370,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         
         self.readFile(file, id, pkg)
             .pipe(self.getTransforms(fakePath || file, pkg, {
-                builtin: has(parent.modules, id)
+                builtin: builtin
             }))
             .pipe(concat(function (body) {
                 fromSource(file, body.toString('utf8'), pkg);
