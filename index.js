@@ -188,7 +188,9 @@ Deps.prototype.readFile = function (file, id, pkg) {
         tr.push(null);
         return tr;
     }
-    var rs = fs.createReadStream(file);
+    var rs = fs.createReadStream(file, {
+        encoding: 'utf8'
+    });
     rs.on('error', function (err) { self.emit('error', err) });
     this.emit('file', file, id);
     return rs;
