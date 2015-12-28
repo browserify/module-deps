@@ -34,7 +34,7 @@ test('--debug passed to transforms', function (t) {
     p = mdeps({ debug: true })
     p.write({
         transform: function (file, opts) {
-            t.equal(opts._flags, Infinity, 'transform arguents are preserved');
+            t.equal(opts._flags, Infinity, 'transform arguments are preserved');
             return through();
         },
         options: { _flags: Infinity }
