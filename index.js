@@ -69,6 +69,18 @@ function Deps (opts) {
     };
 }
 
+Deps.prototype._isTopLevel = function (file) {
+    var isTopLevel = this.entries.some(function (main) {
+        var m = path.relative(path.dirname(main), file);
+        return m.split(/[\\\/]/).indexOf('node_modules') < 0;
+    });
+    if (!isTopLevel) {
+        var m = path.relative(this.basedir, file);
+        isTopLevel = m.split(/[\\\/]/).indexOf('node_modules') < 0;
+    }
+    return isTopLevel;
+};
+
 Deps.prototype._transform = function (row, enc, next) {
     var self = this;
     if (typeof row === 'string') {
@@ -197,20 +209,12 @@ Deps.prototype.readFile = function (file, id, pkg) {
 };
 
 Deps.prototype.getTransforms = function (file, pkg, opts) {
-    // TODO: Needs FAKE path here.
     if (!opts) opts = {};
     var self = this;
     
     var isTopLevel;
-    if (opts.builtin) isTopLevel = false;
-    else isTopLevel = this.entries.some(function (main) {
-        var m = path.relative(path.dirname(main), file);
-        return m.split(/[\\\/]/).indexOf('node_modules') < 0;
-    });
-    if (!isTopLevel && !opts.builtin) {
-        var m = path.relative(this.basedir, file);
-        isTopLevel = m.split(/[\\\/]/).indexOf('node_modules') < 0;
-    }
+    if (opts.builtin || opts.inNodeModules) isTopLevel = false;
+    else isTopLevel = this._isTopLevel(file);
     
     var transforms = [].concat(isTopLevel ? this.transforms : [])
         .concat(getTransforms(pkg, {
@@ -368,24 +372,25 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         
         var c = self.cache && self.cache[file];
-        if (c) return fromDeps(file, c.source, c.package, Object.keys(c.deps));
+        if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         
         self.readFile(file, id, pkg)
             .pipe(self.getTransforms(fakePath || file, pkg, {
-                builtin: builtin
+                builtin: builtin,
+                inNodeModules: parent.inNodeModules
             }))
             .pipe(concat(function (body) {
-                fromSource(file, body.toString('utf8'), pkg);
+                fromSource(file, body.toString('utf8'), pkg, fakePath);
             }))
         ;
     });
 
-    function fromSource (file, src, pkg) {
+    function fromSource (file, src, pkg, fakePath) {
         var deps = rec.noparse ? [] : self.parseDeps(file, src);
-        if (deps) fromDeps(file, src, pkg, deps);
+        if (deps) fromDeps(file, src, pkg, fakePath, deps);
     }
     
-    function fromDeps (file, src, pkg, deps) {
+    function fromDeps (file, src, pkg, fakePath, deps) {
         var p = deps.length;
         var resolved = {};
         
@@ -399,11 +404,13 @@ Deps.prototype.walk = function (id, parent, cb) {
                     if (--p === 0) done();
                     return;
                 }
+                var isTopLevel = self._isTopLevel(fakePath || file);
                 var current = {
                     id: file,
                     filename: file,
                     paths: self.paths,
-                    package: pkg
+                    package: pkg,
+                    inNodeModules: parent.inNodeModules || !isTopLevel
                 };
                 self.walk(id, current, function (err, r) {
                     resolved[id] = r;
