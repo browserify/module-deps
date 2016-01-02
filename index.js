@@ -255,6 +255,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             trOpts = tr[1];
             tr = tr[0];
         }
+        trOpts._flags = '_flags' in opts ? opts._flags : self.options;
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             self.emit('transform', t, file);
