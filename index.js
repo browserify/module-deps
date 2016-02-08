@@ -255,7 +255,8 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             trOpts = tr[1];
             tr = tr[0];
         }
-        trOpts.packageDir = pkg.__dirname;
+        if (!trOpts.packageDir)
+            trOpts.packageDir = pkg.__dirname;
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             self.emit('transform', t, file);
