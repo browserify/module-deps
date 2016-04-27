@@ -371,8 +371,9 @@ Deps.prototype.walk = function (id, parent, cb) {
             return ts.end(rec.source);
         }
         
+        var sortKey = parent.sortKey || parent.filename
         var c = self.cache && self.cache[file];
-        if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+        if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps), sortKey);
         
         self.readFile(file, id, pkg)
             .pipe(self.getTransforms(fakePath || file, pkg, {
@@ -380,17 +381,17 @@ Deps.prototype.walk = function (id, parent, cb) {
                 inNodeModules: parent.inNodeModules
             }))
             .pipe(concat(function (body) {
-                fromSource(file, body.toString('utf8'), pkg, fakePath);
+                fromSource(file, body.toString('utf8'), pkg, fakePath, sortKey);
             }))
         ;
     });
 
-    function fromSource (file, src, pkg, fakePath) {
+    function fromSource (file, src, pkg, fakePath, sortKey) {
         var deps = rec.noparse ? [] : self.parseDeps(file, src);
-        if (deps) fromDeps(file, src, pkg, fakePath, deps);
+        if (deps) fromDeps(file, src, pkg, fakePath, deps, sortKey);
     }
     
-    function fromDeps (file, src, pkg, fakePath, deps) {
+    function fromDeps (file, src, pkg, fakePath, deps, sortKey) {
         var p = deps.length;
         var resolved = {};
         
@@ -398,7 +399,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         
         (function resolve () {
             if (self.inputPending > 0) return setTimeout(resolve);
-            deps.forEach(function (id) {
+            deps.forEach(function (id, i) {
                 if (opts.filter && !opts.filter(id)) {
                     resolved[id] = false;
                     if (--p === 0) done();
@@ -410,7 +411,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                     filename: file,
                     paths: self.paths,
                     package: pkg,
-                    inNodeModules: parent.inNodeModules || !isTopLevel
+                    inNodeModules: parent.inNodeModules || !isTopLevel,
+                    sortKey: sortKey + '!' + file + ':' + i
                 };
                 self.walk(id, current, function (err, r) {
                     resolved[id] = r;
@@ -424,7 +426,11 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.id) rec.id = file;
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
+            if (!rec.orderedDeps) rec.depsList = deps.map(function(dep) {
+                return resolved[dep];
+            });
             if (!rec.file) rec.file = file;
+            rec.sortKey = sortKey + '!' + file;
             
             if (self.entries.indexOf(file) >= 0) {
                 rec.entry = true;
