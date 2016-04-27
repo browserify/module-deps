@@ -18,6 +18,12 @@ var Transform = require('readable-stream').Transform;
 module.exports = Deps;
 inherits(Deps, Transform);
 
+function leftPad(str, width) {
+    str = str.toString();
+    while (str.length < width) str = '0' + str;
+    return str;
+}
+
 function Deps (opts) {
     var self = this;
     if (!(this instanceof Deps)) return new Deps(opts);
@@ -412,7 +418,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                     paths: self.paths,
                     package: pkg,
                     inNodeModules: parent.inNodeModules || !isTopLevel,
-                    sortKey: sortKey + '!' + file + ':' + i
+                    sortKey: sortKey + '!' + file + ':' + leftPad(i, 8)
                 };
                 self.walk(id, current, function (err, r) {
                     resolved[id] = r;
@@ -426,9 +432,6 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.id) rec.id = file;
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
-            if (!rec.orderedDeps) rec.depsList = deps.map(function(dep) {
-                return resolved[dep];
-            });
             if (!rec.file) rec.file = file;
             rec.sortKey = sortKey + '!' + file;
             
