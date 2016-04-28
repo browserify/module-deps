@@ -33,6 +33,7 @@ test('source', function (t) {
                 id: files.main,
                 file: files.main,
                 source: sources.main,
+                sortKey: '!' + files.main,
                 entry: true,
                 deps: { './foo': files.foo, './extra.js': files.extra }
             },
@@ -40,18 +41,22 @@ test('source', function (t) {
                 id: files.foo,
                 file: files.foo,
                 source: sources.foo,
+                sortKey: '!' + files.main + ':00000000!' + files.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
                 source: sources.bar,
+                sortKey: '!' + files.main + ':00000000!' + files.foo +
+                    ':00000000!' + files.bar,
                 deps: {}
             },
             {
                 id: files.extra,
                 file: files.extra,
                 source: sources.extra,
+                sortKey: '!' + files.main + ':00000001!' + files.extra,
                 deps: {}
             },
         ].sort(cmp));

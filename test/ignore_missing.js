@@ -26,12 +26,14 @@ test('ignoreMissing', function (t) {
                 id: files.main,
                 file: files.main,
                 source: sources.main,
+                sortKey: '!' + files.main,
                 entry: true,
                 deps: { './other': files.other }
             },
             {
                 id: files.other,
                 file: files.other,
+                sortKey: '!' + files.main + ':00000000!' + files.other,
                 source: sources.other,
                 deps: { 'missingModule': undefined }
             }

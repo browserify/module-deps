@@ -31,12 +31,14 @@ test('uses cache and reads from disk', function (t) {
             {
                 id: 'foo',
                 file: files.foo,
+                sortKey: '!' + files.foo,
                 source: sources.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
+                sortKey: '!' + files.foo + ':00000000!' + files.bar,
                 source: sources.bar,
                 deps: {}
             }

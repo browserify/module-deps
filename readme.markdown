@@ -21,11 +21,11 @@ output:
 ```
 $ node example/deps.js
 [
-{"id":"/home/substack/projects/module-deps/example/files/main.js","source":"var foo = require('./foo');\nconsole.log('main: ' + foo(5));\n","entry":true,"deps":{"./foo":"/home/substack/projects/module-deps/example/files/foo.js"}}
+{"id":"/Users/substack/src/module-deps/example/files/bar.js","source":"module.exports = function (n) {\n    return n * 100;\n};\n","deps":{},"file":"/Users/substack/src/module-deps/example/files/bar.js","sortKey":"!/Users/substack/src/module-deps/example/files/main.js:00000000!/Users/substack/src/module-deps/example/files/foo.js:00000000!/Users/substack/src/module-deps/example/files/bar.js"}
 ,
-{"id":"/home/substack/projects/module-deps/example/files/foo.js","source":"var bar = require('./bar');\n\nmodule.exports = function (n) {\n    return n * 111 + bar(n);\n};\n","deps":{"./bar":"/home/substack/projects/module-deps/example/files/bar.js"}}
+{"id":"/Users/substack/src/module-deps/example/files/foo.js","source":"var bar = require('./bar');\n\nmodule.exports = function (n) {\n    return n * 111 + bar(n);\n};\n","deps":{"./bar":"/Users/substack/src/module-deps/example/files/bar.js"},"file":"/Users/substack/src/module-deps/example/files/foo.js","sortKey":"!/Users/substack/src/module-deps/example/files/main.js:00000000!/Users/substack/src/module-deps/example/files/foo.js"}
 ,
-{"id":"/home/substack/projects/module-deps/example/files/bar.js","source":"module.exports = function (n) {\n    return n * 100;\n};\n","deps":{}}
+{"file":"/Users/substack/src/module-deps/example/files/main.js","id":"/Users/substack/src/module-deps/example/files/main.js","source":"var foo = require('./foo');\nconsole.log('main: ' + foo(5));\n","deps":{"./foo":"/Users/substack/src/module-deps/example/files/foo.js"},"sortKey":"!/Users/substack/src/module-deps/example/files/main.js","entry":true}
 ]
 ```
 
@@ -167,6 +167,19 @@ Modules can apply their own transformations by setting a transformation pipeline
 in their package.json at the `opts.transformKey` path. These transformations
 only apply to the files directly in the module itself, not to the module's
 dependants nor to its dependencies.
+
+# output objects
+
+The objects emitted from module-deps include file contents, metadata, and
+dependencies.
+
+* source: the complete source code of the file as a string
+* file: the filename
+* sortKey: a string that consists of the dependency path from root to this
+  file, along with line numbers of the require statements. This makes it possible
+  to sort the results in order written in the source.
+* deps: an object that maps between the string given to the `require` method
+  and the filename it resolves to
 
 ## package.json transformKey
 
