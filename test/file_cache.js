@@ -43,11 +43,13 @@ test('uses file cache', function (t) {
                 id: 'foo',
                 file: files.foo,
                 source: specialReplace(sources.foo),
+                sortKey: '!' + files.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
+                sortKey: '!' + files.foo + ':00000000!' + files.bar,
                 source: specialReplace(sources.bar),
                 deps: {}
             }

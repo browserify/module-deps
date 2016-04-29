@@ -26,12 +26,14 @@ test('single id export', function (t) {
                 id: 'foo',
                 file: files.foo,
                 source: sources.foo,
+                sortKey: '!' + files.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
                 source: sources.bar,
+                sortKey: '!' + files.foo + ':00000000!' + files.bar,
                 deps: {}
             }
         ].sort(cmp));

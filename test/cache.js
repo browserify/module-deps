@@ -35,11 +35,13 @@ test('uses cache', function (t) {
                 id: 'foo',
                 file: files.foo,
                 source: sources.foo,
+                sortKey: '!' + files.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
+                sortKey: '!' + files.foo + ':00000000!' + files.bar,
                 source: sources.bar,
                 deps: {}
             }

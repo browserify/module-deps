@@ -28,6 +28,7 @@ test('noParse row', function (t) {
                 id: files.main,
                 file: files.main,
                 source: sources.main,
+                sortKey: '!' + files.main,
                 entry: true,
                 noparse: true,
                 deps: {}

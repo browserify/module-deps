@@ -62,18 +62,21 @@ test('preserves expose and entry with partial cache', function(t) {
                 id: files.bar,
                 file: files.bar,
                 source: sources.bar,
+                sortKey: '!' + files.main + ':00000002!' + files.bar,
                 deps: {xyz: files.xyz}
             },
             {
                 file: files.foo,
                 id: files.foo,
                 source: sources.foo,
+                sortKey: '!' + files.xyz + ':00000000!' + files.foo,
                 deps: {'./lib/abc': files.abc}
             },
             {
                 id: 'abc',
                 file: files.abc,
                 source: sources.abc,
+                sortKey: '!' + files.abc,
                 deps: {},
                 entry: true,
                 expose: 'abc'
@@ -82,6 +85,7 @@ test('preserves expose and entry with partial cache', function(t) {
                 id: 'main',
                 file: files.main,
                 source: sources.main,
+                sortKey: '!' + files.main,
                 deps: {
                     './bar': files.bar,
                     abc: files.abc,
@@ -93,6 +97,7 @@ test('preserves expose and entry with partial cache', function(t) {
                 id: 'xyz',
                 file: files.xyz,
                 source: sources.xyz,
+                sortKey: '!' + files.xyz,
                 deps: {'../foo': files.foo},
                 entry: true,
                 expose: 'xyz'

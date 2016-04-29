@@ -27,6 +27,7 @@ test('deps', function (t) {
                 id: files.main,
                 file: files.main,
                 source: sources.main,
+                sortKey: '!' + files.main,
                 entry: true,
                 deps: { './foo': files.foo }
             },
@@ -34,12 +35,14 @@ test('deps', function (t) {
                 id: files.foo,
                 file: files.foo,
                 source: sources.foo,
+                sortKey: '!' + files.main + ':00000000!' + files.foo,
                 deps: { './bar': files.bar }
             },
             {
                 id: files.bar,
                 file: files.bar,
                 source: sources.bar,
+                sortKey: '!' + files.main + ':00000000!' + files.foo + ':00000000!' + files.bar,
                 deps: {}
             }
         ].sort(cmp));

@@ -28,11 +28,13 @@ test('noParse', function (t) {
                 file: files.main,
                 source: sources.main,
                 entry: true,
+                sortKey: '!' + files.main,
                 deps: { './foo': files.foo }
             },
             {
                 id: files.foo,
                 file: files.foo,
+                sortKey: '!' + files.main + ':00000000!' + files.foo,
                 source: sources.foo,
                 deps: {}
             }

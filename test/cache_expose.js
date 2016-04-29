@@ -37,6 +37,7 @@ test('cache preserves expose and entry', function (t) {
                 expose: 'foo2',
                 entry: true,
                 file: files.foo,
+                sortKey: '!' + files.foo,
                 source: sources.foo,
                 deps: { './bar': files.bar }
             },
@@ -44,6 +45,7 @@ test('cache preserves expose and entry', function (t) {
                 id: files.bar,
                 expose: 'bar2',
                 file: files.bar,
+                sortKey: '!' + files.bar,
                 source: sources.bar,
                 deps: {}
             }
