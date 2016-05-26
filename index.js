@@ -264,7 +264,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     function makeTransform (tr, cb) {
         var trOpts = {};
         if (Array.isArray(tr)) {
-            trOpts = tr[1];
+            trOpts = tr[1] || {};
             tr = tr[0];
         }
         if (typeof tr === 'function') {
