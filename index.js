@@ -252,7 +252,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     function makeTransform (tr, cb) {
         var trOpts = {};
         if (Array.isArray(tr)) {
-            trOpts = tr[1];
+            trOpts = tr[1] || {};
             tr = tr[0];
         }
         trOpts._flags = trOpts.hasOwnProperty('_flags') ? trOpts._flags : self.options;
