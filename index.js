@@ -147,7 +147,7 @@ Deps.prototype._flush = function () {
     Object.keys(files).forEach(function (key) {
         var r = files[key];
         var pkg = r.pkg || {};
-        var dir = dirname(r.row.file);
+        var dir = r.row.file ? path.dirname(r.row.file) : self.basedir;
         if (!pkg.__dirname) pkg.__dirname = dir;
         self.walk(r.row, xtend(self.top, {
             filename: path.join(dir || '', '_fake.js')
@@ -480,7 +480,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
     if (cached) return nextTick(cb, null, cached);
     if (cached === false) return nextTick(cb, null, undefined);
     
-    var dirs = parents(dirname(file));
+    var dirs = parents(file ? path.dirname(file) : self.basedir);
     
     (function next () {
         if (dirs.length === 0) {
