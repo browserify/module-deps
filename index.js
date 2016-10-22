@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var relativePath = require('cached-path-relative')
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -71,11 +72,11 @@ function Deps (opts) {
 
 Deps.prototype._isTopLevel = function (file) {
     var isTopLevel = this.entries.some(function (main) {
-        var m = path.relative(path.dirname(main), file);
+        var m = relativePath(path.dirname(main), file);
         return m.split(/[\\\/]/).indexOf('node_modules') < 0;
     });
     if (!isTopLevel) {
-        var m = path.relative(this.basedir, file);
+        var m = relativePath(this.basedir, file);
         isTopLevel = m.split(/[\\\/]/).indexOf('node_modules') < 0;
     }
     return isTopLevel;
