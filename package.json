@@ -24,8 +24,9 @@
     "xtend": "^4.0.0"
   },
   "devDependencies": {
-    "tap": "^1.0.0",
-    "browser-pack": "^5.0.0"
+    "browser-pack": "^5.0.0",
+    "from2-string": "^1.1.0",
+    "tap": "^1.0.0"
   },
   "scripts": {
     "test": "tap test/*.js"
