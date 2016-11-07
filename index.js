@@ -196,8 +196,10 @@ Deps.prototype.resolve = function (id, parent, cb) {
 Deps.prototype.readFile = function (file, id, pkg) {
     var self = this;
     if (xhas(this.fileCache, file)) {
+        var c = this.fileCache[file];
+        if (typeof c.pipe === 'function') return c;
         var tr = through();
-        tr.push(this.fileCache[file]);
+        tr.push(c);
         tr.push(null);
         return tr;
     }

@@ -2,20 +2,24 @@ var mdeps = require('../');
 var test = require('tap').test;
 var path = require('path');
 var through = require('through2');
+var fromString = require('from2-string');
 
 var files = {
     foo: path.join(__dirname, '/files/foo.js'),
-    bar: path.join(__dirname, '/files/bar.js')
+    bar: path.join(__dirname, '/files/bar.js'),
+    extra: path.join(__dirname, '/files/extra.js')
 };
 
 var sources = {
-    foo: 'require("./bar"); var tongs;',
-    bar: 'notreal tongs'
+    foo: 'require("./bar"); require("./extra"); var tongs;',
+    bar: 'notreal tongs',
+    extra: 'notreal tongs'
 };
 
 var fileCache = {};
 fileCache[files.foo] = sources.foo;
 fileCache[files.bar] = sources.bar;
+fileCache[files.extra] = fromString(sources.extra);
 
 var specialReplace = function(input) {
     return input.replace(/tongs/g, 'tangs');
@@ -43,12 +47,21 @@ test('uses file cache', function (t) {
                 id: 'foo',
                 file: files.foo,
                 source: specialReplace(sources.foo),
-                deps: { './bar': files.bar }
+                deps: {
+                    './bar': files.bar,
+                    './extra': files.extra
+                }
             },
             {
                 id: files.bar,
                 file: files.bar,
                 source: specialReplace(sources.bar),
+                deps: {}
+            },
+            {
+                id: files.extra,
+                file: files.extra,
+                source: specialReplace(sources.extra),
                 deps: {}
             }
         ].sort(cmp));
