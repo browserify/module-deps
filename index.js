@@ -356,7 +356,12 @@ Deps.prototype.walk = function (id, parent, cb) {
             self.emit('missing', id, parent);
             return cb && cb(null, undefined);
         }
-        if (err) return self.emit('error', err);
+        if (err) {
+            var message = 'Can\'t walk dependency graph: ' + err.message;
+            message += '\n    required by ' + parent.filename;
+            err = new Error(message);
+            return self.emit('error', err);
+        }
         if (self.visited[file]) {
             if (-- self.pending === 0) self.push(null);
             if (input) --self.inputPending;
