@@ -27,6 +27,11 @@ function Deps (opts) {
     if (!opts) opts = {};
     
     this.basedir = opts.basedir || process.cwd();
+    this.persistentCache = opts.persistentCache || function (file, id, pkg, fallback, cb) {
+        setImmediate(function () {
+            fallback(null, cb);
+        });
+    };
     this.cache = opts.cache;
     this.fileCache = opts.fileCache;
     this.pkgCache = opts.packageCache || {};
@@ -376,19 +381,41 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         
-        self.readFile(file, id, pkg)
-            .pipe(self.getTransforms(fakePath || file, pkg, {
-                builtin: builtin,
-                inNodeModules: parent.inNodeModules
-            }))
-            .pipe(concat(function (body) {
-                fromSource(file, body.toString('utf8'), pkg, fakePath);
-            }))
-        ;
+        self.persistentCache(file, id, pkg, function fallback (stream, cb) {
+            (stream || self.readFile(file, id, pkg))
+                .pipe(self.getTransforms(fakePath || file, pkg, {
+                    builtin: builtin,
+                    inNodeModules: parent.inNodeModules
+                }))
+                .pipe(concat(function (body) {
+                    var src = body.toString('utf8');
+                    var deps = getDeps(file, src);
+                    if (deps) {
+                        cb(null, {
+                            source: src,
+                            package: pkg,
+                            deps: deps.reduce(function (deps, dep) {
+                                deps[dep] = true
+                                return deps
+                            }, {})
+                        });
+                    }
+                }));
+        }, function (err, c) {
+            if (err) {
+                self.emit('error', err);
+                return;
+            }
+            fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+        });
     });
 
+    function getDeps (file, src) {
+        return rec.noparse ? [] : self.parseDeps(file, src);
+    }
+
     function fromSource (file, src, pkg, fakePath) {
-        var deps = rec.noparse ? [] : self.parseDeps(file, src);
+        var deps = getDeps(file, src);
         if (deps) fromDeps(file, src, pkg, fakePath, deps);
     }
     
