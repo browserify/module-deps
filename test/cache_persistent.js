@@ -59,7 +59,7 @@ test('allow passing of a different stream', function (t) {
     t.plan(1);
     var p = parser({
         persistentCache: function (file, id, pkg, fallback, cb) {
-            fallback(fs.createReadStream(files.bar), cb)
+            fallback(fs.readFileSync(files.bar, 'utf8'), cb)
         }
     });
     p.end({ id: 'foo', file: files.foo, entry: false });

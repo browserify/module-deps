@@ -106,9 +106,13 @@ from disk.
         if (hasError()) {
             return cb(error) // Pass any error to the callback
         }
-        if (isInCache()) {
+
+        var fileData = fs.readFileSync(file)
+        var key = keyFromFile(file, fileData)
+
+        if (db.has(key)) {
             return cb(null, {
-                source: fs.readFileSync(file, 'utf8'), // String of the fully processed file
+                source: db.get(key).toString(),
                 package: pkg, // The package for housekeeping
                 deps: {
                     'id':  // id that is used to reference a required file
@@ -116,13 +120,21 @@ from disk.
                 }
             })
         }
-        // optional (can be null) stream that provides the data from
-        // the hard disk, can be provided in case the file data is used
-        // to evaluate the cache identifier
-        stream = fs.createReadStream(file)
-
-        // fallback to the default reading
-        fallback(stream, cb)
+        //
+        // The fallback will process the file in case the file is not
+        // in cache.
+        //
+        // Note that if your implementation doesn't need the file data
+        // then you can pass `null` instead of the source and the fallback will
+        // fetch the data by itself.
+        //
+        fallback(fileData, function (error, cacheableEntry) {
+            if (error) {
+                return cb(error)
+            }
+            db.addToCache(key, cacheableEntry)
+            cb(null, cacheableEntry)
+        })
     }
     ```
 

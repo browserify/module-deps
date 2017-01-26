@@ -201,10 +201,7 @@ Deps.prototype.resolve = function (id, parent, cb) {
 Deps.prototype.readFile = function (file, id, pkg) {
     var self = this;
     if (xhas(this.fileCache, file)) {
-        var tr = through();
-        tr.push(this.fileCache[file]);
-        tr.push(null);
-        return tr;
+        return toStream(this.fileCache[file]);
     }
     var rs = fs.createReadStream(file, {
         encoding: 'utf8'
@@ -381,8 +378,22 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         
-        self.persistentCache(file, id, pkg, function fallback (stream, cb) {
-            (stream || self.readFile(file, id, pkg))
+        self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
+            if (err) {
+                self.emit('error', err);
+                return;
+            }
+            fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+        });
+
+        function persistentCacheFallback (dataAsString, cb) {
+            var stream
+            if (dataAsString) {
+                stream = toStream(dataAsString)
+            } else {
+                stream = self.readFile(file, id, pkg)
+            }
+            stream
                 .pipe(self.getTransforms(fakePath || file, pkg, {
                     builtin: builtin,
                     inNodeModules: parent.inNodeModules
@@ -401,13 +412,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                         });
                     }
                 }));
-        }, function (err, c) {
-            if (err) {
-                self.emit('error', err);
-                return;
-            }
-            fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
-        });
+        }
     });
 
     function getDeps (file, src) {
@@ -575,6 +580,13 @@ function xhas (obj) {
         obj = obj[key];
     }
     return true;
+}
+
+function toStream (dataAsString) {
+    var tr = through();
+    tr.push(dataAsString);
+    tr.push(null);
+    return tr;
 }
 
 function has (obj, key) {
