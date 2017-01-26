@@ -97,7 +97,7 @@ from disk.
 * `opts.persistentCache` - a complex cache handler that allows async and persistent
     caching of data. A `persistentCache` needs to follow this interface:
     ```
-    function peristentCache (
+    function persistentCache (
         file, // the path to the file that is loaded
         id,   // the id that is used to reference this file
         pkg,  // the package that this file belongs to fallback
