@@ -55,7 +55,7 @@ test('passes persistent cache error through', function (t) {
     p.on('error', function (err) { t.equals(err.message, 'foo') });
 });
 
-test('allow passing of a different stream', function (t) {
+test('allow passing of the raw source as string', function (t) {
     t.plan(1);
     var p = parser({
         persistentCache: function (file, id, pkg, fallback, cb) {
