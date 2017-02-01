@@ -101,6 +101,7 @@ from disk.
         file, // the path to the file that is loaded
         id,   // the id that is used to reference this file
         pkg,  // the package that this file belongs to fallback
+        fallback, // async fallback handler to be called if the cache doesn't hold the given file 
         cb    // callback handler that receives the cache data
     ) {
         if (hasError()) {
