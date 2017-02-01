@@ -387,12 +387,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         });
 
         function persistentCacheFallback (dataAsString, cb) {
-            var stream
-            if (dataAsString) {
-                stream = toStream(dataAsString)
-            } else {
-                stream = self.readFile(file, id, pkg)
-            }
+            var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg);
             stream
                 .pipe(self.getTransforms(fakePath || file, pkg, {
                     builtin: builtin,
