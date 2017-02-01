@@ -401,8 +401,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                             source: src,
                             package: pkg,
                             deps: deps.reduce(function (deps, dep) {
-                                deps[dep] = true
-                                return deps
+                                deps[dep] = true;
+                                return deps;
                             }, {})
                         });
                     }
