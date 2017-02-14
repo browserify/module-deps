@@ -28,7 +28,7 @@ function Deps (opts) {
     
     this.basedir = opts.basedir || process.cwd();
     this.persistentCache = opts.persistentCache || function (file, id, pkg, fallback, cb) {
-        setImmediate(function () {
+        process.nextTick(function () {
             fallback(null, cb);
         });
     };
