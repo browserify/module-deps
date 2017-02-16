@@ -13,13 +13,13 @@ test('uses persistent cache', function (t) {
     var p = parser({
         persistentCache: function (file, id, pkg, fallback, cb) {
             if (file === files.bar) {
-                return fallback(null, cb)
+                return fallback(null, cb);
             }
             cb(null, {
                 source: 'file at ' + file + '@' + id,
                 package: pkg,
                 deps: { './bar': files.bar }
-            })
+            });
         }
     });
     p.end({ id: 'foo', file: files.foo, entry: false });
@@ -48,7 +48,7 @@ test('passes persistent cache error through', function (t) {
     t.plan(1);
     var p = parser({
         persistentCache: function (file, id, pkg, fallback, cb) {
-            cb(new Error('foo'))
+            cb(new Error('foo'));
         }
     });
     p.end({ id: 'foo', file: files.foo, entry: false });
@@ -59,7 +59,7 @@ test('allow passing of the raw source as string', function (t) {
     t.plan(1);
     var p = parser({
         persistentCache: function (file, id, pkg, fallback, cb) {
-            fallback(fs.readFileSync(files.bar, 'utf8'), cb)
+            fallback(fs.readFileSync(files.bar, 'utf8'), cb);
         }
     });
     p.end({ id: 'foo', file: files.foo, entry: false });

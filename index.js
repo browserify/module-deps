@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var relativePath = require('cached-path-relative')
+var relativePath = require('cached-path-relative');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -280,7 +280,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             if (err) {
                 params.basedir = pkg.__dirname;
                 return nodeResolve(id, params, function (e, r) {
-                    nr(e, r, true)
+                    nr(e, r, true);
                 });
             }
             
@@ -529,7 +529,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             catch (err) {
                 return onpkg(new Error([
                     err + ' while parsing json file ' + pkgfile
-                ].join('')))
+                ].join('')));
             }
             pkg.__dirname = dir;
             
@@ -544,8 +544,8 @@ Deps.prototype.lookupPackage = function (file, cb) {
                 delete self.pkgFileCachePending[pkgfile];
                 fns.forEach(function (f) { f(err, pkg) });
             }
-            if (err) cb(err)
-            else if (pkg) cb(null, pkg)
+            if (err) cb(err);
+            else if (pkg) cb(null, pkg);
             else {
                 self.pkgCache[pkgfile] = false;
                 next();
