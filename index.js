@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var relativePath = require('cached-path-relative')
+var relativePath = require('cached-path-relative');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -33,6 +33,7 @@ function Deps (opts) {
         });
     };
     this.cache = opts.cache;
+    this.detective = {parse: opts.detective};
     this.fileCache = opts.fileCache;
     this.pkgCache = opts.packageCache || {};
     this.pkgFileCache = {};
@@ -475,7 +476,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         return [];
     }
     
-    try { var deps = detective(src) }
+    try { var deps = detective(src, this.detective) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         this.emit('error', new Error(
