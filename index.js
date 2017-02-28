@@ -33,7 +33,7 @@ function Deps (opts) {
         });
     };
     this.cache = opts.cache;
-    this.detective = {parse: opts.detective};
+    this.acorn = {parse: {acorn: opts.acorn}};
     this.fileCache = opts.fileCache;
     this.pkgCache = opts.packageCache || {};
     this.pkgFileCache = {};
@@ -476,7 +476,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         return [];
     }
     
-    try { var deps = detective(src, this.detective) }
+    try { var deps = detective(src, this.acorn) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         this.emit('error', new Error(
