@@ -96,7 +96,7 @@ from disk.
 
 * `opts.persistentCache` - a complex cache handler that allows async and persistent
     caching of data. A `persistentCache` needs to follow this interface:
-    ```
+    ```js
     function persistentCache (
         file, // the path to the file that is loaded
         id,   // the id that is used to reference this file
