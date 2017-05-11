@@ -68,6 +68,9 @@ Optionally pass in some `opts`:
 package.json for source transformations. If falsy, don't look at the
 package.json at all.
 
+* `opts.defaultTransformKey` - if provided, used as a fallback
+in case `opts.transformKey` was not provided or couldn't find any transforms
+
 * `opts.resolve` - custom resolve function using the
 `opts.resolve(id, parent, cb)` signature that
 [browser-resolve](https://github.com/shtylman/node-browser-resolve) has
