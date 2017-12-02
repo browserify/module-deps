@@ -13,6 +13,7 @@
     "concat-stream": "~1.5.0",
     "defined": "^1.0.0",
     "detective": "^4.0.0",
+    "detective-esm": "*",
     "duplexer2": "^0.1.2",
     "inherits": "^2.0.1",
     "parents": "^1.0.0",

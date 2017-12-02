@@ -5,6 +5,7 @@ var relativePath = require('cached-path-relative')
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
+var detectiveEsm = require('detective-esm');
 var through = require('through2');
 var concat = require('concat-stream');
 var parents = require('parents');
@@ -58,6 +59,7 @@ function Deps (opts) {
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
     this.options = xtend(opts);
+    if (typeof this.options.esm === 'undefined') this.options.esm = false;
     if (!this.options.modules) this.options.modules = {};
 
     // If the caller passes options.expose, store resolved pathnames for exposed
@@ -376,14 +378,22 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         
         var c = self.cache && self.cache[file];
-        if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+        if (c) return fromDeps(file, c.source, c.package, fakePath, {
+            deps: Object.keys(c.deps),
+            imports: c.imports,
+            exports: c.exports
+        });
         
         self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
             if (err) {
                 self.emit('error', err);
                 return;
             }
-            fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+            fromDeps(file, c.source, c.package, fakePath, {
+                deps: Object.keys(c.deps),
+                imports: c.imports,
+                exports: c.exports
+            });
         });
 
         function persistentCacheFallback (dataAsString, cb) {
@@ -395,15 +405,17 @@ Deps.prototype.walk = function (id, parent, cb) {
                 }))
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
-                    var deps = getDeps(file, src);
-                    if (deps) {
+                    var result = getDeps(file, src);
+                    if (result) {
                         cb(null, {
                             source: src,
                             package: pkg,
-                            deps: deps.reduce(function (deps, dep) {
+                            deps: result.deps.reduce(function (deps, dep) {
                                 deps[dep] = true;
                                 return deps;
-                            }, {})
+                            }, {}),
+                            imports: result.imports,
+                            exports: result.exports
                         });
                     }
                 }));
@@ -411,15 +423,18 @@ Deps.prototype.walk = function (id, parent, cb) {
     });
 
     function getDeps (file, src) {
-        return rec.noparse ? [] : self.parseDeps(file, src);
+        return rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src);
     }
 
     function fromSource (file, src, pkg, fakePath) {
-        var deps = getDeps(file, src);
-        if (deps) fromDeps(file, src, pkg, fakePath, deps);
+        var result = getDeps(file, src);
+        if (result) fromDeps(file, src, pkg, fakePath, result);
     }
     
-    function fromDeps (file, src, pkg, fakePath, deps) {
+    function fromDeps (file, src, pkg, fakePath, modules) {
+        var deps = modules.deps;
+        var imports = modules.imports;
+        var exports = modules.exports;
         var p = deps.length;
         var resolved = {};
         
@@ -454,6 +469,9 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
             if (!rec.file) rec.file = file;
+            if (opts.esm && isEsm(file)) {
+                rec.esm = { imports: imports, exports: exports };
+            }
             
             if (self.entries.indexOf(file) >= 0) {
                 rec.entry = true;
@@ -467,15 +485,29 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
-    if (this.options.noParse === true) return [];
-    if (/\.json$/.test(file)) return [];
+    if (this.options.noParse === true) return { deps: [] };
+    if (/\.json$/.test(file)) return { deps: [] };
     
     if (Array.isArray(this.options.noParse)
     && this.options.noParse.indexOf(file) >= 0) {
-        return [];
+        return { deps: [] };
     }
+
+    var imports = null;
+    var exports = null;
+    var deps = null;
     
-    try { var deps = detective(src) }
+    try {
+        if (this.options.esm && isEsm(file)) {
+            var result = detectiveEsm(src);
+            deps = result.strings;
+            imports = result.imports;
+            exports = result.exports;
+        }
+        else {
+            deps = detective(src)
+        }
+    }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         this.emit('error', new Error(
@@ -483,7 +515,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
         ));
         return;
     }
-    return deps;
+    return { deps: deps, imports: imports, exports: exports };
 };
 
 Deps.prototype.lookupPackage = function (file, cb) {
@@ -595,4 +627,8 @@ function wrapTransform (tr) {
     var wrapper = duplexer(input, output);
     tr.on('error', function (err) { wrapper.emit('error', err) });
     return wrapper;
+}
+
+function isEsm (file) {
+    return /\.mjs$/.test(file)
 }
