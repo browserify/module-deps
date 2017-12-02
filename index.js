@@ -470,7 +470,14 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.deps) rec.deps = resolved;
             if (!rec.file) rec.file = file;
             if (opts.esm && isEsm(file)) {
-                rec.esm = { imports: imports, exports: exports };
+                rec.esm = {
+                    imports: imports.map(function (imp) {
+                        var name = imp.from;
+                        if (isEsm(rec.deps[name])) { imp.esm = true; }
+                        return imp;
+                    }),
+                    exports: exports
+                };
             }
             
             if (self.entries.indexOf(file) >= 0) {
