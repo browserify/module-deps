@@ -9,7 +9,6 @@
   "dependencies": {
     "JSONStream": "^1.0.3",
     "browser-resolve": "^1.7.0",
-    "cached-path-relative": "^1.0.0",
     "concat-stream": "~1.5.0",
     "defined": "^1.0.0",
     "detective": "^4.7.1",

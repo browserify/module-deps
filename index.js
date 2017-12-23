@@ -1,7 +1,5 @@
 var fs = require('fs');
 var path = require('path');
-var relativePath = require('cached-path-relative')
-
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
@@ -12,6 +10,7 @@ var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
 var xtend = require('xtend');
 var defined = require('defined');
+var relativePathCache = {};
 
 var inherits = require('inherits');
 var Transform = require('readable-stream').Transform;
@@ -595,4 +594,10 @@ function wrapTransform (tr) {
     var wrapper = duplexer(input, output);
     tr.on('error', function (err) { wrapper.emit('error', err) });
     return wrapper;
+}
+
+function relativePath (from, to) {
+    var key = from + to;
+    return relativePathCache[key] ||
+        (relativePathCache[key] = path.relative(from, to));
 }
