@@ -261,6 +261,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             tr = tr[0];
         }
         trOpts._flags = trOpts.hasOwnProperty('_flags') ? trOpts._flags : self.options;
+        if (isEsm(file)) {
+            trOpts._flags = Object.assign({}, trOpts._flags, { esm: true });
+        }
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             self.emit('transform', t, file);
