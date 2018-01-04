@@ -50,7 +50,7 @@
     "url": "http://substack.net"
   },
   "engines": {
-    "node": ">= 0.6"
+    "node": ">= 4.0"
   },
   "license": "MIT"
 }
