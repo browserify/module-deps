@@ -12,7 +12,7 @@
     "cached-path-relative": "^1.0.0",
     "concat-stream": "~1.6.0",
     "defined": "^1.0.0",
-    "detective": "^5.0.1",
+    "detective": "^5.0.2",
     "duplexer2": "^0.1.2",
     "inherits": "^2.0.1",
     "parents": "^1.0.0",
@@ -24,7 +24,7 @@
     "xtend": "^4.0.0"
   },
   "devDependencies": {
-    "tap": "^11.0.1",
+    "tap": "^1.0.0",
     "browser-pack": "^6.0.2"
   },
   "scripts": {
@@ -50,7 +50,7 @@
     "url": "http://substack.net"
   },
   "engines": {
-    "node": ">= 4.0"
+    "node": ">= 0.8.0"
   },
   "license": "MIT"
 }
