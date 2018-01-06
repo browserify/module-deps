@@ -1,6 +1,6 @@
 {
   "name": "module-deps",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
   "main": "index.js",
   "bin": {
