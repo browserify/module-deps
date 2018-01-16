@@ -203,6 +203,10 @@ You don't necessarily need to use the
 readable/writable filter stream for transforming file contents, but this is an
 easy way to do it.
 
+module-deps looks for `require()` calls and adds their arguments as dependencies
+of a file. Transform streams can emit `'dep'` events to include additional
+dependencies that are not consumed with `require()`.
+
 When you call `mdeps()` with an `opts.transform`, the transformations you
 specify will not be run for any files in node_modules/. This is because modules
 you include should be self-contained and not need to worry about guarding
