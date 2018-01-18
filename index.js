@@ -273,7 +273,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     }
     
     function loadTransform (id, trOpts, cb) {
-        var params = { basedir: path.dirname(file) };
+        var params = { basedir: path.dirname(file), paths: self.paths };
         nodeResolve(id, params, function nr (err, res, again) {
             if (err && again) return cb && cb(err);
             
@@ -285,7 +285,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             }
             
             if (!res) return cb(new Error(
-                'cannot find transform module ' + tr
+                'cannot find transform module ' + id
                 + ' while transforming ' + file
             ));
             
