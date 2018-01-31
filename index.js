@@ -273,7 +273,10 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     }
     
     function loadTransform (id, trOpts, cb) {
-        var params = { basedir: path.dirname(file) };
+        var params = {
+            basedir: path.dirname(file),
+            preserveSymlinks: false
+        };
         nodeResolve(id, params, function nr (err, res, again) {
             if (err && again) return cb && cb(err);
             
