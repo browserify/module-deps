@@ -540,7 +540,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
                 fns.forEach(function (f) { f(err, pkg) });
             }
             if (err) cb(err)
-            else if (pkg) cb(null, pkg)
+            else if (pkg && typeof pkg === 'object') cb(null, pkg)
             else {
                 self.pkgCache[pkgfile] = false;
                 next();
