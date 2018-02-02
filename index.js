@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var relativePath = require('cached-path-relative')
+var relativePath = require('cached-path-relative');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -206,8 +206,6 @@ Deps.prototype.readFile = function (file, id, pkg) {
     var rs = fs.createReadStream(file, {
         encoding: 'utf8'
     });
-    rs.on('error', function (err) { self.emit('error', err) });
-    this.emit('file', file, id);
     return rs;
 };
 
@@ -235,7 +233,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     
     for (var i = 0; i < transforms.length; i++) (function (i) {
         makeTransform(transforms[i], function (err, trs) {
-            if (err) return self.emit('error', err)
+            if (err) {
+                return dup.emit('error', err);
+            }
             streams[i] = trs;
             if (-- pending === 0) done();
         });
@@ -247,7 +247,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
         middle.on('error', function (err) {
             err.message += ' while parsing file: ' + file;
             if (!err.filename) err.filename = file;
-            self.emit('error', err);
+            dup.emit('error', err);
         });
         input.pipe(middle).pipe(output);
     }
@@ -283,7 +283,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             if (err) {
                 params.basedir = pkg.__dirname;
                 return nodeResolve(id, params, function (e, r) {
-                    nr(e, r, true)
+                    nr(e, r, true);
                 });
             }
             
@@ -349,6 +349,9 @@ Deps.prototype.walk = function (id, parent, cb) {
             file = rec.file;
             
             var ts = self.getTransforms(file, pkg);
+            ts.on('error', function (err) {
+                self.emit('error', err);
+            });
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -371,6 +374,9 @@ Deps.prototype.walk = function (id, parent, cb) {
         
         if (rec.source) {
             var ts = self.getTransforms(file, pkg);
+            ts.on('error', function (err) {
+                self.emit('error', err);
+            });
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -382,6 +388,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         
         self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
+            self.emit('file', file, id);
             if (err) {
                 self.emit('error', err);
                 return;
@@ -390,12 +397,13 @@ Deps.prototype.walk = function (id, parent, cb) {
         });
 
         function persistentCacheFallback (dataAsString, cb) {
-            var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg);
+            var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg).on('error', cb);
             stream
                 .pipe(self.getTransforms(fakePath || file, pkg, {
                     builtin: builtin,
                     inNodeModules: parent.inNodeModules
                 }))
+                .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
                     var deps = getDeps(file, src);
@@ -524,7 +532,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             catch (err) {
                 return onpkg(new Error([
                     err + ' while parsing json file ' + pkgfile
-                ].join('')))
+                ].join('')));
             }
             pkg.__dirname = dir;
             
@@ -539,8 +547,8 @@ Deps.prototype.lookupPackage = function (file, cb) {
                 delete self.pkgFileCachePending[pkgfile];
                 fns.forEach(function (f) { f(err, pkg) });
             }
-            if (err) cb(err)
-            else if (pkg && typeof pkg === 'object') cb(null, pkg)
+            if (err) cb(err);
+            else if (pkg && typeof pkg === 'object') cb(null, pkg);
             else {
                 self.pkgCache[pkgfile] = false;
                 next();
