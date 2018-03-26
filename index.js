@@ -263,9 +263,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             // allow transforms to `stream.emit('dep', path)` to add dependencies for this file
-            self._transformDeps[file] = [];
             t.on('dep', function (dep) {
-              self._transformDeps[file].push(dep);
+                if (!self._transformDeps[file]) self._transformDeps[file] = [];
+                self._transformDeps[file].push(dep);
             });
             self.emit('transform', t, file);
             nextTick(cb, null, wrapTransform(t));
@@ -309,9 +309,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             
             var trs = r(file, trOpts);
             // allow transforms to `stream.emit('dep', path)` to add dependencies for this file
-            self._transformDeps[file] = [];
             trs.on('dep', function (dep) {
-              self._transformDeps[file].push(dep);
+                if (!self._transformDeps[file]) self._transformDeps[file] = [];
+                self._transformDeps[file].push(dep);
             });
             self.emit('transform', trs, file);
             cb(null, trs);
@@ -434,6 +434,7 @@ Deps.prototype.walk = function (id, parent, cb) {
 
     function getDeps (file, src) {
         var deps = rec.noparse ? [] : self.parseDeps(file, src);
+        if (!deps) return;
         // dependencies emitted by transforms
         if (self._transformDeps[file]) deps = deps.concat(self._transformDeps[file]);
         return deps;
