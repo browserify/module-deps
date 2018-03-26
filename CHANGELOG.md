@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.0.1 - 2018-03-27
+* Fix crash when file has a transform and a syntax error [#145](https://github.com/browserify/module-deps/pull/145)
+
 ## 6.0.0 - 2018-02-07
 * Ignore package.json files that do not contain JSON objects [#142](https://github.com/browserify/module-deps/pull/142)
 * Don't preserve symlinks when resolving transforms, matching Node resolution behaviour [#133](https://github.com/browserify/module-deps/pull/133)
