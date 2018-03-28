@@ -417,7 +417,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                 .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
-                    var deps = getDeps(file, src);
+                    try { var deps = getDeps(file, src); }
+                    catch (err) { cb(err); }
                     if (deps) {
                         cb(null, {
                             source: src,
@@ -434,7 +435,6 @@ Deps.prototype.walk = function (id, parent, cb) {
 
     function getDeps (file, src) {
         var deps = rec.noparse ? [] : self.parseDeps(file, src);
-        if (!deps) return;
         // dependencies emitted by transforms
         if (self._transformDeps[file]) deps = deps.concat(self._transformDeps[file]);
         return deps;
@@ -504,10 +504,9 @@ Deps.prototype.parseDeps = function (file, src, cb) {
     try { var deps = detective(src) }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
-        this.emit('error', new Error(
+        throw new Error(
             'Parsing file ' + file + ': ' + message
-        ));
-        return;
+        );
     }
     return deps;
 };
