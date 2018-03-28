@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.0.2 - 2018-03-28
+* Fix missing 'file' event when file has a syntax error [#146](https://github.com/browserify/module-deps/pull/146)
+
 ## 6.0.1 - 2018-03-27
 * Fix crash when file has a transform and a syntax error [#145](https://github.com/browserify/module-deps/pull/145)
 
