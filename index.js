@@ -662,7 +662,6 @@ function cachedRelatedFilesTransform (files) {
     return through(function (chunk, enc, next) {
         next(null, chunk);
     }, function (done) {
-        console.log('emit', files);
         for (var i = 0; i < files.length; i++) {
             this.emit('file', files[i]);
         }
