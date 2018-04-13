@@ -416,21 +416,32 @@ Deps.prototype.walk = function (id, parent, cb) {
         var c = self.cache && self.cache[file];
         if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         
+        var fallbackCalled = false;
         self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
+            if (!err && !fallbackCalled && Array.isArray(c.files)) {
+                // Only done when:
+                // - There is an entry with .files
+                // - The fallback was not called; i.e. this entry comes from the cache
+                var stream = cachedRelatedFilesTransform(c.files);
+                self.emit('transform', stream, file);
+                stream.on('data', function () {}); // discard data
+                stream.on('end', function () { persistentCacheDone(null, c) });
+                stream.end(c.source);
+            } else {
+                persistentCacheDone(err, c);
+            }
+        });
+
+        function persistentCacheDone (err, c) {
             self.emit('file', file, id);
             if (err) {
                 self.emit('error', err);
                 return;
             }
-            if (Array.isArray(c.files)) {
-                c.files.forEach(function (related) {
-                    self.emit('file', related);
-                });
-            }
             fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
-        });
-
+        }
         function persistentCacheFallback (dataAsString, cb) {
+            fallbackCalled = true;
             var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg).on('error', cb);
             stream
                 .pipe(self.getTransforms(fakePath || file, pkg, {
@@ -645,4 +656,16 @@ function wrapTransform (tr) {
     var wrapper = duplexer(input, output);
     tr.on('error', function (err) { wrapper.emit('error', err) });
     return wrapper;
+}
+
+function cachedRelatedFilesTransform (files) {
+    return through(function (chunk, enc, next) {
+        next(null, chunk);
+    }, function (done) {
+        console.log('emit', files);
+        for (var i = 0; i < files.length; i++) {
+            this.emit('file', files[i]);
+        }
+        done();
+    });
 }

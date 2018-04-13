@@ -155,6 +155,11 @@ test('transform "file" events are re-emitted', function (t) {
     p.on('file', function (file) {
         expected.push(file);
     });
+    p.on('transform', function (tx) {
+        tx.on('file', function (file) {
+            expected.push(file);
+        });
+    });
     p.on('error', t.error);
     p.end(files.foo);
     p.pipe(devNull());
@@ -164,6 +169,11 @@ test('transform "file" events are re-emitted', function (t) {
         var p2 = parser(opts);
         p2.on('file', function (file) {
             t.equal(file, expected.shift());
+        });
+        p2.on('transform', function (tx) {
+            tx.on('file', function (file) {
+                t.equal(file, expected.shift());
+            });
         });
         p2.on('error', t.error);
         p2.end(files.foo);
