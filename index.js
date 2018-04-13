@@ -267,6 +267,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
                 if (!self._transformDeps[file]) self._transformDeps[file] = [];
                 self._transformDeps[file].push(dep);
             });
+            t.on('file', function (related) {
+                dup.emit('file', related);
+            });
             self.emit('transform', t, file);
             nextTick(cb, null, wrapTransform(t));
         }
@@ -313,6 +316,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
                 if (!self._transformDeps[file]) self._transformDeps[file] = [];
                 self._transformDeps[file].push(dep);
             });
+            trs.on('file', function (related) {
+                dup.emit('file', related);
+            });
             self.emit('transform', trs, file);
             cb(null, trs);
         });
@@ -332,6 +338,16 @@ Deps.prototype.walk = function (id, parent, cb) {
         id = rec.file || rec.id;
         input = true;
         this.inputPending ++;
+    }
+
+    // Collect file events emitted by transforms, so that
+    // they can be saved by a persistentCache module and re-emitted
+    // when loading from cache.
+    // This ensures watchify will pick up on all the files that are
+    // related to a module.
+    var relatedFiles = [];
+    function onrelatedfile (file) {
+        relatedFiles.push(file);
     }
     
     self.resolve(id, parent, function (err, file, pkg, fakePath) {
@@ -363,6 +379,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             ts.on('error', function (err) {
                 self.emit('error', err);
             });
+            ts.on('file', onrelatedfile);
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -388,6 +405,7 @@ Deps.prototype.walk = function (id, parent, cb) {
             ts.on('error', function (err) {
                 self.emit('error', err);
             });
+            ts.on('file', onrelatedfile);
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -404,6 +422,11 @@ Deps.prototype.walk = function (id, parent, cb) {
                 self.emit('error', err);
                 return;
             }
+            if (Array.isArray(c.files)) {
+                c.files.forEach(function (related) {
+                    self.emit('file', related);
+                });
+            }
             fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
         });
 
@@ -414,6 +437,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                     builtin: builtin,
                     inNodeModules: parent.inNodeModules
                 }))
+                .on('file', onrelatedfile)
                 .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
@@ -423,6 +447,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                         cb(null, {
                             source: src,
                             package: pkg,
+                            files: relatedFiles,
                             deps: deps.reduce(function (deps, dep) {
                                 deps[dep] = true;
                                 return deps;

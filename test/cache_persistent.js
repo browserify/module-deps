@@ -1,7 +1,9 @@
 var parser = require('../');
 var test = require('tap').test;
 var path = require('path');
+var Writable = require('stream').Writable;
 var fs = require('fs');
+var through = require('through2');
 
 var files = {
     foo: path.join(__dirname, '/files/foo.js'),
@@ -118,5 +120,62 @@ test('errors of transforms occur in the correct order with a persistent cache', 
     });
 });
 
+test('transform "file" events are re-emitted', function (t) {
+    t.plan(8);
+
+    var cache = {};
+    var shouldCallTransform = true;
+    var opts = {
+        transform: function (file, opts) {
+            t.ok(shouldCallTransform, 'transform should only be called if not cached');
+            return through(function (chunk, enc, next) {
+                next(null, chunk);
+            }, function (done) {
+                this.emit('file', '/some/file/path');
+                done();
+            });
+        },
+        persistentCache: function (file, id, pkg, fallback, cb) {
+            if (cache[file]) {
+                process.nextTick(function () {
+                    cb(null, cache[file]);
+                });
+            } else {
+                fallback(null, function (err, data) {
+                    t.ifError(err);
+                    cache[file] = data
+                    cb(err, data);
+                });
+            }
+        }
+    };
+
+    var expected = [];
+    var p = parser(opts);
+    p.on('file', function (file) {
+        expected.push(file);
+    });
+    p.on('error', t.error);
+    p.end(files.foo);
+    p.pipe(devNull());
+
+    p.on('end', function () {
+        shouldCallTransform = false;
+        var p2 = parser(opts);
+        p2.on('file', function (file) {
+            t.equal(file, expected.shift());
+        });
+        p2.on('error', t.error);
+        p2.end(files.foo);
+        p2.pipe(devNull());
+    });
+});
 
 function cmp (a, b) { return a.id < b.id ? -1 : 1 }
+function devNull () {
+    var stream = Writable({ objectMode: true });
+    stream._write = function (chunk, enc, cb) {
+        cb();
+    };
+    return stream;
+}
