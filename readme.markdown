@@ -18,7 +18,7 @@ md.end({ file: __dirname + '/files/main.js' });
 
 output:
 
-```
+```json
 $ node example/deps.js
 [
 {"id":"/home/substack/projects/module-deps/example/files/main.js","source":"var foo = require('./foo');\nconsole.log('main: ' + foo(5));\n","entry":true,"deps":{"./foo":"/home/substack/projects/module-deps/example/files/foo.js"}}
@@ -32,7 +32,7 @@ $ node example/deps.js
 and you can feed this json data into
 [browser-pack](https://github.com/browserify/browser-pack):
 
-```
+```bash
 $ node example/deps.js | browser-pack | node
 main: 1055
 ```
@@ -149,14 +149,29 @@ in `process.env.NODE_PATH`
 Input objects should be string filenames or objects with these parameters:
 
 * `row.file` - filename
+* `row.entry` - whether to treat this file as an entry point, defaults to
+  `true`. Set to `false` to include this file, but not run it automatically.
 * `row.expose` - name to be exposed as
-* `row.noparse` when true, don't parse the file contents for dependencies
+* `row.noparse` - when true, don't parse the file contents for dependencies
 
 or objects can specify transforms:
 
 * `row.transform` - string name, path, or function
 * `row.options` - transform options as an object
 * `row.global` - boolean, whether the transform is global
+
+# output objects
+
+Output objects describe files with dependencies. They have these properties:
+
+* `row.id` - an identifier for the file, used in the `row.deps` prperty
+* `row.file` - path to the source file
+* `row.entry` - true if the file is an entry point
+* `row.expose` - name to be exposed as
+* `row.source` - source file content as a string
+* `row.deps` - object describing dependencies. The keys are strings as used
+  in `require()` calls in the file, and values are the row IDs (file paths)
+  of dependencies.
 
 # events
 
