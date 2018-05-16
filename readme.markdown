@@ -18,7 +18,7 @@ md.end({ file: __dirname + '/files/main.js' });
 
 output:
 
-```
+```json
 $ node example/deps.js
 [
 {"id":"/home/substack/projects/module-deps/example/files/main.js","source":"var foo = require('./foo');\nconsole.log('main: ' + foo(5));\n","entry":true,"deps":{"./foo":"/home/substack/projects/module-deps/example/files/foo.js"}}
@@ -32,7 +32,7 @@ $ node example/deps.js
 and you can feed this json data into
 [browser-pack](https://github.com/browserify/browser-pack):
 
-```
+```bash
 $ node example/deps.js | browser-pack | node
 main: 1055
 ```
