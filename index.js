@@ -462,8 +462,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                 }
                 var isTopLevel = self._isTopLevel(fakePath || file);
                 var current = {
-                    id: file,
-                    filename: file,
+                    id: fakePath || file,
+                    filename: fakePath || file,
                     paths: self.paths,
                     package: pkg,
                     inNodeModules: parent.inNodeModules || !isTopLevel
