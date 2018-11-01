@@ -60,6 +60,9 @@ test('browser resolve - missing', function (t) {
 
     d.end({id: 'missing', file: missing, entry: true});
 
+    d.on('end', function () {
+        t.fail('errored');
+    });
     d.on('error', function (err) {
         t.match(
             String(err),
@@ -74,6 +77,9 @@ test('node resolve - missing', function (t) {
 
     d.end({id: 'missing', file: missing, entry: true});
 
+    d.on('end', function () {
+        t.fail('errored');
+    });
     d.on('error', function (err) {
         t.match(
             String(err),
@@ -93,8 +99,7 @@ test('browser resolve', function (t) {
     d.on('end', function () {
         t.same(rows, expectedRows);
     });
-
-    d.on('error', function (err) {
+    d.on('error', function () {
         t.fail('errored');
     });
 });
@@ -110,8 +115,7 @@ test('node resolve', function (t) {
     d.on('end', function () {
         t.same(rows, expectedRows);
     });
-
-    d.on('error', function (err) {
+    d.on('error', function () {
         t.fail('errored');
     });
 });
