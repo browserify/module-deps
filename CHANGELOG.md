@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.2.1 - 2019-05-24
+* Update minimum required version of `cached-path-relative` [#155](https://github.com/browserify/module-deps/pull/155)
+* Add CI testing on Windows [#152](https://github.com/browserify/module-deps/pull/152)
+* Add CI testing on recent Node.js versions (10, 11, 12) [#157](https://github.com/browserify/module-deps/pull/157)
+
 ## 6.2.0 - 2018-11-13
 * Add `.dirname` property to the object given to `opts.resolve` [#154](https://github.com/browserify/module-deps/pull/154)
 
