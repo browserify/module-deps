@@ -263,7 +263,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             tr = tr[0];
         }
         trOpts._flags = trOpts.hasOwnProperty('_flags') ? trOpts._flags : self.options;
-        if (isEsm(file)) {
+        if (isEsm(file, pkg)) {
             trOpts._flags = Object.assign({}, trOpts._flags, { esm: true });
         }
         if (typeof tr === 'function') {
@@ -431,7 +431,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                 .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
-                    try { var result = getDeps(file, src); }
+                    try { var result = getDeps(file, src, pkg); }
                     catch (err) { cb(err); }
                     if (result) {
                         cb(null, {
@@ -449,8 +449,8 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
     });
 
-    function getDeps (file, src) {
-        var deps = rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src);
+    function getDeps (file, src, pkg) {
+        var deps = rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src, pkg);
         // dependencies emitted by transforms
         if (self._transformDeps[file]) deps.deps = deps.deps.concat(self._transformDeps[file]);
         return deps;
@@ -500,11 +500,13 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
             if (!rec.file) rec.file = file;
-            if (opts.esm && isEsm(file)) {
+            if (opts.esm && isEsm(file, pkg)) {
                 rec.esm = {
                     imports: imports.map(function (imp) {
                         var name = imp.from;
-                        if (isEsm(rec.deps[name])) { imp.esm = true; }
+                        var importee = rec.deps[name];
+                        var pkg = self.pkgCache[importee];
+                        if (isEsm(importee, pkg)) { imp.esm = true; }
                         return imp;
                     }),
                     exports: exports
@@ -522,7 +524,7 @@ Deps.prototype.walk = function (id, parent, cb) {
     }
 };
 
-Deps.prototype.parseDeps = function (file, src, cb) {
+Deps.prototype.parseDeps = function (file, src, pkg) {
     var self = this;
     if (this.options.noParse === true) return { deps: [] };
     if (/\.json$/.test(file)) return { deps: [] };
@@ -537,7 +539,7 @@ Deps.prototype.parseDeps = function (file, src, cb) {
     var deps = null;
     
     try {
-        if (this.options.esm && isEsm(file)) {
+        if (this.options.esm && isEsm(file, pkg)) {
             var result = detectiveEsm(src);
             deps = result.strings;
             imports = result.imports;
@@ -667,6 +669,10 @@ function wrapTransform (tr) {
     return wrapper;
 }
 
-function isEsm (file) {
-    return /\.mjs$/.test(file)
+function isEsm (file, pkg) {
+    if (pkg && pkg.type === 'module') {
+        return !/\.cjs$/.test(file);
+    } else {
+        return /\.mjs$/.test(file);
+    }
 }
