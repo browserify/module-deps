@@ -178,6 +178,9 @@ Deps.prototype.resolve = function (id, parent, cb) {
     
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
+    if (isEsm(parent.filename, parent.package)) {
+        parent.extensions = ['.mjs'].concat(parent.extensions || ['.js'])
+    }
     
     self.resolver(id, parent, function onresolve (err, file, pkg, fakePath) {
         if (err) return cb(err);
