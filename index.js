@@ -540,13 +540,13 @@ Deps.prototype.parseDeps = function (file, src, pkg) {
     
     try {
         if (this.options.esm && isEsm(file, pkg)) {
-            var result = detectiveEsm(src);
+            var result = detectiveEsm(src, { sourceType: 'module' });
             deps = result.strings;
             imports = result.imports;
             exports = result.exports;
         }
         else {
-            deps = self.detective(src)
+            deps = self.detective(src, { sourceType: 'script' })
         }
     }
     catch (ex) {
