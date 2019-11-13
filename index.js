@@ -5,6 +5,7 @@ var relativePath = require('cached-path-relative');
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
 var detective = require('detective');
+var detectiveEsm = require('detective-esm');
 var through = require('through2');
 var concat = require('concat-stream');
 var parents = require('parents');
@@ -60,6 +61,7 @@ function Deps (opts) {
     this.resolver = opts.resolve || browserResolve;
     this.detective = opts.detect || detective;
     this.options = xtend(opts);
+    if (typeof this.options.esm === 'undefined') this.options.esm = false;
     if (!this.options.modules) this.options.modules = {};
 
     // If the caller passes options.expose, store resolved pathnames for exposed
@@ -176,6 +178,9 @@ Deps.prototype.resolve = function (id, parent, cb) {
     
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
+    if (isEsm(parent.filename, parent.package)) {
+        parent.extensions = ['.mjs'].concat(parent.extensions || ['.js'])
+    }
     
     self.resolver(id, parent, function onresolve (err, file, pkg, fakePath) {
         if (err) return cb(err);
@@ -261,6 +266,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             tr = tr[0];
         }
         trOpts._flags = trOpts.hasOwnProperty('_flags') ? trOpts._flags : self.options;
+        if (isEsm(file, pkg)) {
+            trOpts._flags = Object.assign({}, trOpts._flags, { esm: true });
+        }
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
             // allow transforms to `stream.emit('dep', path)` to add dependencies for this file
@@ -397,7 +405,11 @@ Deps.prototype.walk = function (id, parent, cb) {
         }
         
         var c = self.cache && self.cache[file];
-        if (c) return fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+        if (c) return fromDeps(file, c.source, c.package, fakePath, {
+            deps: Object.keys(c.deps),
+            imports: c.imports,
+            exports: c.exports
+        });
         
         self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
             self.emit('file', file, id);
@@ -405,7 +417,11 @@ Deps.prototype.walk = function (id, parent, cb) {
                 self.emit('error', err);
                 return;
             }
-            fromDeps(file, c.source, c.package, fakePath, Object.keys(c.deps));
+            fromDeps(file, c.source, c.package, fakePath, {
+                deps: Object.keys(c.deps),
+                imports: c.imports,
+                exports: c.exports
+            });
         });
 
         function persistentCacheFallback (dataAsString, cb) {
@@ -418,35 +434,40 @@ Deps.prototype.walk = function (id, parent, cb) {
                 .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
-                    try { var deps = getDeps(file, src); }
+                    try { var result = getDeps(file, src, pkg); }
                     catch (err) { cb(err); }
-                    if (deps) {
+                    if (result) {
                         cb(null, {
                             source: src,
                             package: pkg,
-                            deps: deps.reduce(function (deps, dep) {
+                            deps: result.deps.reduce(function (deps, dep) {
                                 deps[dep] = true;
                                 return deps;
-                            }, {})
+                            }, {}),
+                            imports: result.imports,
+                            exports: result.exports
                         });
                     }
                 }));
         }
     });
 
-    function getDeps (file, src) {
-        var deps = rec.noparse ? [] : self.parseDeps(file, src);
+    function getDeps (file, src, pkg) {
+        var deps = rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src, pkg);
         // dependencies emitted by transforms
-        if (self._transformDeps[file]) deps = deps.concat(self._transformDeps[file]);
+        if (self._transformDeps[file]) deps.deps = deps.deps.concat(self._transformDeps[file]);
         return deps;
     }
 
     function fromSource (file, src, pkg, fakePath) {
-        var deps = getDeps(file, src);
-        if (deps) fromDeps(file, src, pkg, fakePath, deps);
+        var result = getDeps(file, src);
+        if (result) fromDeps(file, src, pkg, fakePath, result);
     }
     
-    function fromDeps (file, src, pkg, fakePath, deps) {
+    function fromDeps (file, src, pkg, fakePath, modules) {
+        var deps = modules.deps;
+        var imports = modules.imports;
+        var exports = modules.exports;
         var p = deps.length;
         var resolved = {};
         
@@ -482,6 +503,18 @@ Deps.prototype.walk = function (id, parent, cb) {
             if (!rec.source) rec.source = src;
             if (!rec.deps) rec.deps = resolved;
             if (!rec.file) rec.file = file;
+            if (opts.esm && isEsm(file, pkg)) {
+                rec.esm = {
+                    imports: imports.map(function (imp) {
+                        var name = imp.from;
+                        var importee = rec.deps[name];
+                        var pkg = self.pkgCache[importee];
+                        if (isEsm(importee, pkg)) { imp.esm = true; }
+                        return imp;
+                    }),
+                    exports: exports
+                };
+            }
             
             if (self.entries.indexOf(file) >= 0) {
                 rec.entry = true;
@@ -494,24 +527,38 @@ Deps.prototype.walk = function (id, parent, cb) {
     }
 };
 
-Deps.prototype.parseDeps = function (file, src, cb) {
+Deps.prototype.parseDeps = function (file, src, pkg) {
     var self = this;
-    if (this.options.noParse === true) return [];
-    if (/\.json$/.test(file)) return [];
+    if (this.options.noParse === true) return { deps: [] };
+    if (/\.json$/.test(file)) return { deps: [] };
     
     if (Array.isArray(this.options.noParse)
     && this.options.noParse.indexOf(file) >= 0) {
-        return [];
+        return { deps: [] };
     }
+
+    var imports = null;
+    var exports = null;
+    var deps = null;
     
-    try { var deps = self.detective(src) }
+    try {
+        if (this.options.esm && isEsm(file, pkg)) {
+            var result = detectiveEsm(src, { sourceType: 'module' });
+            deps = result.strings;
+            imports = result.imports;
+            exports = result.exports;
+        }
+        else {
+            deps = self.detective(src, { sourceType: 'script' })
+        }
+    }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
         throw new Error(
             'Parsing file ' + file + ': ' + message
         );
     }
-    return deps;
+    return { deps: deps, imports: imports, exports: exports };
 };
 
 Deps.prototype.lookupPackage = function (file, cb) {
@@ -623,4 +670,12 @@ function wrapTransform (tr) {
     var wrapper = duplexer(input, output);
     tr.on('error', function (err) { wrapper.emit('error', err) });
     return wrapper;
+}
+
+function isEsm (file, pkg) {
+    if (pkg && pkg.type === 'module') {
+        return !/\.cjs$/.test(file);
+    } else {
+        return /\.mjs$/.test(file);
+    }
 }
