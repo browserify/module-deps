@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var relativePath = require('cached-path-relative')
+var relativePath = require('cached-path-relative');
 
 var browserResolve = require('browser-resolve');
 var nodeResolve = require('resolve');
@@ -39,6 +39,7 @@ function Deps (opts) {
     this.pkgFileCache = {};
     this.pkgFileCachePending = {};
     this._emittedPkg = {};
+    this._transformDeps = {};
     this.visited = {};
     this.walking = {};
     this.entries = [];
@@ -58,6 +59,7 @@ function Deps (opts) {
     this.transforms = [].concat(opts.transform).filter(Boolean);
     this.globalTransforms = [].concat(opts.globalTransform).filter(Boolean);
     this.resolver = opts.resolve || browserResolve;
+    this.detective = opts.detect || detective;
     this.options = xtend(opts);
     if (typeof this.options.esm === 'undefined') this.options.esm = false;
     if (!this.options.modules) this.options.modules = {};
@@ -208,8 +210,6 @@ Deps.prototype.readFile = function (file, id, pkg) {
     var rs = fs.createReadStream(file, {
         encoding: 'utf8'
     });
-    rs.on('error', function (err) { self.emit('error', err) });
-    this.emit('file', file, id);
     return rs;
 };
 
@@ -237,7 +237,9 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     
     for (var i = 0; i < transforms.length; i++) (function (i) {
         makeTransform(transforms[i], function (err, trs) {
-            if (err) return self.emit('error', err)
+            if (err) {
+                return dup.emit('error', err);
+            }
             streams[i] = trs;
             if (-- pending === 0) done();
         });
@@ -249,7 +251,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
         middle.on('error', function (err) {
             err.message += ' while parsing file: ' + file;
             if (!err.filename) err.filename = file;
-            self.emit('error', err);
+            dup.emit('error', err);
         });
         input.pipe(middle).pipe(output);
     }
@@ -266,6 +268,11 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
         }
         if (typeof tr === 'function') {
             var t = tr(file, trOpts);
+            // allow transforms to `stream.emit('dep', path)` to add dependencies for this file
+            t.on('dep', function (dep) {
+                if (!self._transformDeps[file]) self._transformDeps[file] = [];
+                self._transformDeps[file].push(dep);
+            });
             self.emit('transform', t, file);
             nextTick(cb, null, wrapTransform(t));
         }
@@ -278,14 +285,17 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     }
     
     function loadTransform (id, trOpts, cb) {
-        var params = { basedir: path.dirname(file) };
+        var params = {
+            basedir: path.dirname(file),
+            preserveSymlinks: false
+        };
         nodeResolve(id, params, function nr (err, res, again) {
             if (err && again) return cb && cb(err);
             
             if (err) {
                 params.basedir = pkg.__dirname;
                 return nodeResolve(id, params, function (e, r) {
-                    nr(e, r, true)
+                    nr(e, r, true);
                 });
             }
             
@@ -304,6 +314,11 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             }
             
             var trs = r(file, trOpts);
+            // allow transforms to `stream.emit('dep', path)` to add dependencies for this file
+            trs.on('dep', function (dep) {
+                if (!self._transformDeps[file]) self._transformDeps[file] = [];
+                self._transformDeps[file].push(dep);
+            });
             self.emit('transform', trs, file);
             cb(null, trs);
         });
@@ -351,6 +366,9 @@ Deps.prototype.walk = function (id, parent, cb) {
             file = rec.file;
             
             var ts = self.getTransforms(file, pkg);
+            ts.on('error', function (err) {
+                self.emit('error', err);
+            });
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -373,6 +391,9 @@ Deps.prototype.walk = function (id, parent, cb) {
         
         if (rec.source) {
             var ts = self.getTransforms(file, pkg);
+            ts.on('error', function (err) {
+                self.emit('error', err);
+            });
             ts.pipe(concat(function (body) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
@@ -388,6 +409,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         });
         
         self.persistentCache(file, id, pkg, persistentCacheFallback, function (err, c) {
+            self.emit('file', file, id);
             if (err) {
                 self.emit('error', err);
                 return;
@@ -400,15 +422,17 @@ Deps.prototype.walk = function (id, parent, cb) {
         });
 
         function persistentCacheFallback (dataAsString, cb) {
-            var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg);
+            var stream = dataAsString ? toStream(dataAsString) : self.readFile(file, id, pkg).on('error', cb);
             stream
                 .pipe(self.getTransforms(fakePath || file, pkg, {
                     builtin: builtin,
                     inNodeModules: parent.inNodeModules
                 }))
+                .on('error', cb)
                 .pipe(concat(function (body) {
                     var src = body.toString('utf8');
-                    var result = getDeps(file, src);
+                    try { var result = getDeps(file, src); }
+                    catch (err) { cb(err); }
                     if (result) {
                         cb(null, {
                             source: src,
@@ -426,7 +450,10 @@ Deps.prototype.walk = function (id, parent, cb) {
     });
 
     function getDeps (file, src) {
-        return rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src);
+        var deps = rec.noparse ? { deps: [], imports: null, exports: null } : self.parseDeps(file, src);
+        // dependencies emitted by transforms
+        if (self._transformDeps[file]) deps.deps = deps.deps.concat(self._transformDeps[file]);
+        return deps;
     }
 
     function fromSource (file, src, pkg, fakePath) {
@@ -455,6 +482,7 @@ Deps.prototype.walk = function (id, parent, cb) {
                 var current = {
                     id: file,
                     filename: file,
+                    basedir: path.dirname(file),
                     paths: self.paths,
                     package: pkg,
                     inNodeModules: parent.inNodeModules || !isTopLevel
@@ -495,6 +523,7 @@ Deps.prototype.walk = function (id, parent, cb) {
 };
 
 Deps.prototype.parseDeps = function (file, src, cb) {
+    var self = this;
     if (this.options.noParse === true) return { deps: [] };
     if (/\.json$/.test(file)) return { deps: [] };
     
@@ -515,15 +544,14 @@ Deps.prototype.parseDeps = function (file, src, cb) {
             exports = result.exports;
         }
         else {
-            deps = detective(src)
+            deps = self.detective(src)
         }
     }
     catch (ex) {
         var message = ex && ex.message ? ex.message : ex;
-        this.emit('error', new Error(
+        throw new Error(
             'Parsing file ' + file + ': ' + message
-        ));
-        return;
+        );
     }
     return { deps: deps, imports: imports, exports: exports };
 };
@@ -563,7 +591,7 @@ Deps.prototype.lookupPackage = function (file, cb) {
             catch (err) {
                 return onpkg(new Error([
                     err + ' while parsing json file ' + pkgfile
-                ].join('')))
+                ].join('')));
             }
             pkg.__dirname = dir;
             
@@ -578,8 +606,8 @@ Deps.prototype.lookupPackage = function (file, cb) {
                 delete self.pkgFileCachePending[pkgfile];
                 fns.forEach(function (f) { f(err, pkg) });
             }
-            if (err) cb(err)
-            else if (pkg) cb(null, pkg)
+            if (err) cb(err);
+            else if (pkg && typeof pkg === 'object') cb(null, pkg);
             else {
                 self.pkgCache[pkgfile] = false;
                 next();
