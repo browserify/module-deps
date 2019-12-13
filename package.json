@@ -12,7 +12,7 @@
     "cached-path-relative": "^1.0.2",
     "concat-stream": "~1.6.0",
     "defined": "^1.0.0",
-    "detective": "^5.0.2",
+    "detective": "^5.2.0",
     "duplexer2": "^0.1.2",
     "inherits": "^2.0.1",
     "parents": "^1.0.0",
