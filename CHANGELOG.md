@@ -2,8 +2,8 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## 6.2.2 - unreleased
-* Update minimum required version of `detective`
+## 6.2.2 - 2019-12-13
+* Update minimum required version of `detective` [#161](https://github.com/browserify/module-deps/pull/161)
 
 ## 6.2.1 - 2019-05-24
 * Update minimum required version of `cached-path-relative` [#155](https://github.com/browserify/module-deps/pull/155)
