@@ -359,7 +359,7 @@ Deps.prototype.walk = function (id, parent, cb) {
         if (err) {
             var message = 'Can\'t walk dependency graph: ' + err.message;
             message += '\n    required by ' + parent.filename;
-            err = new Error(message);
+            err.message = message;
             return self.emit('error', err);
         }
         if (self.visited[file]) {
