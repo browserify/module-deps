@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.2.3 - 2020-08-03
+* Improve error message when dependencies cannot be found [#123](https://github.com/browserify/module-deps/pull/123)
+* Upgrade `browser-resolve` to 2.0 [#164](https://github.com/browserify/module-deps/pull/164)
+
 ## 6.2.2 - 2019-12-13
 * Update minimum required version of `detective` [#161](https://github.com/browserify/module-deps/pull/161)
 
