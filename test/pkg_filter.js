@@ -10,8 +10,10 @@ test('pkg filter', function (t) {
     
     var p = mdeps({
         packageFilter: function (pkg) {
-            t.equal(pkg.main, 'one.js');
-            pkg.main = 'two.js'
+            if (pkg.name === undefined) {
+                t.equal(pkg.main, 'one.js');
+                pkg.main = 'two.js'
+            }
             return pkg;
         }
     });

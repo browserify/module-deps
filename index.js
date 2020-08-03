@@ -173,6 +173,10 @@ Deps.prototype.resolve = function (id, parent, cb) {
 
         return p;
     };
+
+    // have `resolve` do all the package.json lookups,
+    // see discussion in https://github.com/browserify/browser-resolve/issues/93#issuecomment-667837808
+    parent.package = undefined;
     
     if (opts.extensions) parent.extensions = opts.extensions;
     if (opts.modules) parent.modules = opts.modules;
