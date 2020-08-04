@@ -12,6 +12,7 @@ var combine = require('stream-combiner2');
 var duplexer = require('duplexer2');
 var xtend = require('xtend');
 var defined = require('defined');
+var isStream = require('is-stream');
 
 var inherits = require('inherits');
 var Transform = require('readable-stream').Transform;
@@ -43,6 +44,7 @@ function Deps (opts) {
     this.walking = {};
     this.entries = [];
     this._input = [];
+    this._inputOrder = 0;
     
     this.paths = opts.paths || process.env.NODE_PATH || '';
     if (typeof this.paths === 'string') {
@@ -91,9 +93,6 @@ Deps.prototype._isTopLevel = function (file) {
 
 Deps.prototype._transform = function (row, enc, next) {
     var self = this;
-    if (typeof row === 'string') {
-        row = { file: row };
-    }
     if (row.transform && row.global) {
         this.globalTransforms.push([ row.transform, row.options ]);
         return next();
@@ -104,8 +103,21 @@ Deps.prototype._transform = function (row, enc, next) {
     }
     
     self.pending ++;
+    self._inputOrder ++;
     var basedir = defined(row.basedir, self.basedir);
     
+    if (typeof row === 'string') {
+        row = { file: row };
+    }
+    else if (isStream(row)) {
+        row = {
+            file: row.file || path.resolve(
+                basedir,
+                '_stream_' + self._inputOrder + '.js'
+            ),
+            source: row
+        };
+    }
     if (row.entry !== false) {
         self.entries.push(path.resolve(basedir, row.file || row.id));
     }
@@ -372,7 +384,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
             }));
-            return ts.end(rec.source);
+            if (isStream(rec.source)) return rec.source.pipe(ts);
+            else return ts.end(rec.source);
         }
         if (err && self.options.ignoreMissing) {
             if (--self.pending === 0) self.push(null);
@@ -402,7 +415,8 @@ Deps.prototype.walk = function (id, parent, cb) {
                 rec.source = body.toString('utf8');
                 fromSource(file, rec.source, pkg);
             }));
-            return ts.end(rec.source);
+            if (isStream(rec.source)) return rec.source.pipe(ts);
+            else return ts.end(rec.source);
         }
         
         var c = self.cache && self.cache[file];
