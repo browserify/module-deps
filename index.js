@@ -226,7 +226,8 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
     var transforms = [].concat(isTopLevel ? this.transforms : [])
         .concat(getTransforms(pkg, {
             globalTransform: this.globalTransforms,
-            transformKey: this.options.transformKey
+            transformKey: this.options.transformKey,
+            defaultTransformKey: this.options.defaultTransformKey
         }))
     ;
     if (transforms.length === 0) return through();
@@ -584,19 +585,19 @@ Deps.prototype.lookupPackage = function (file, cb) {
 };
  
 function getTransforms (pkg, opts) {
-    var trx = [];
-    if (opts.transformKey) {
-        var n = pkg;
-        var keys = opts.transformKey;
-        for (var i = 0; i < keys.length; i++) {
-            if (n && typeof n === 'object') n = n[keys[i]];
-            else break;
-        }
-        if (i === keys.length) {
-            trx = [].concat(n).filter(Boolean);
-        }
-    }
+    var trx = getTrx(opts.transformKey, pkg);
+    if (!trx) trx = getTrx(opts.defaultTransformKey, pkg) || [];
     return trx.concat(opts.globalTransform || []);
+}
+
+function getTrx (keys, n) {
+  if (keys) {
+    for (var i = 0; i < keys.length; i++) {
+      if (n && typeof n === 'object') n = n[keys[i]];
+      else break;
+    }
+    if (i === keys.length && n) return [].concat(n).filter(Boolean);
+  }
 }
 
 function nextTick (cb) {
