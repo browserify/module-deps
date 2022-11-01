@@ -254,6 +254,7 @@ Deps.prototype.getTransforms = function (file, pkg, opts) {
             err.message += ' while parsing file: ' + file;
             if (!err.filename) err.filename = file;
             dup.emit('error', err);
+            output.end(err);
         });
         input.pipe(middle).pipe(output);
     }
